@@ -1,0 +1,6 @@
+{
+	"deno.enable": true,
+	"editor.insertSpaces": false,
+	"files.eol": "\n",
+	"editor.rulers": [ 80, 120 ],
+}

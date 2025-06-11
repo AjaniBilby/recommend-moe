@@ -1,0 +1,8 @@
+{
+	"recommendations": [
+		"streetsidesoftware.code-spell-checker",
+		"ms-vscode.vscode-typescript-next",
+		"prisma.prisma",
+		"ms-azuretools.vscode-docker"
+	]
+}

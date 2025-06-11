@@ -1,0 +1,26 @@
+node_modules
+
+/.cache
+/build
+.env
+/site
+/dist
+
+*.pdf
+
+postgres-data/*
+stdout.log
+stderr.log
+
+COMMIT
+
+public/entry.worker.js
+
+# fuzz testing
+openapi.json
+openapi-fuzzer.regressions
+results/*
+
+app/component/server/defer.tsx
+app/component/server/head.tsx
+app/component/server/scripts.tsx
