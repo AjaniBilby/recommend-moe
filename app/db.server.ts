@@ -33,12 +33,4 @@ function getClient() {
 	return client;
 }
 
-// temporary fix
-// import * as runtime from "@prisma/runtime/library.js";
-// export const Decimal = runtime.Decimal;
-// export const sql = {
-// 	join: runtime.join,
-// 	str:  runtime.sqltag,
-// }
-
 export { prisma };

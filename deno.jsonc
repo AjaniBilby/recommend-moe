@@ -1,15 +1,24 @@
 {
 	"tasks": {
-		"build": "deno run -A npm:@remix-run/dev@^2.11.2 vite:build",
+		"prepare": "deno task 'prepare:*'",
+		"prepare:htmx": "deno run -A npm:htmx-router",
+		"prepare:prisma": "deno run -A npm:prisma generate",
 		"build:htmx": "deno run -A npm:htmx-router",
 		"check": "deno check '**/*' && deno run -A npm:typescript@^5.5.4/tsc",
-		"dev": "deno run -A --env-file server.ts",
 		"lint": "deno lint",
+		"start": "deno serve -A --parallel ./server.production.ts",
+		"test": "deno test .",
+
 		"prisma": "deno run -A npm:prisma",
 		"prisma:generate": "deno task prisma generate",
 		"prisma:migrate:dev": "deno task prisma generate migrate dev",
-		"start": "deno serve -A --parallel ./server.production.ts",
-		"test": "deno test ."
+
+		"build": "deno task 'build:*'",
+		"build:client": "deno run -A npm:vite build",
+		"build:server": "deno run -A npm:vite build --ssr app/entry.server.ts --outDir dist/server",
+
+		"preview": "NODE_ENV=production deno serve -A --env-file server.ts",
+		"dev": "deno serve -A --env-file server.ts"
 	},
 	"exclude": [ "./build/" ],
 	"compilerOptions": {
@@ -20,15 +29,16 @@
 		"types": ["react", "react-dom", "@types/react", "./types.d.ts"]
 	},
 	"imports": {
-		"@deno/vite-plugin": "npm:@deno/vite-plugin@^1.0.4",
 		"@prisma/": "./build/prisma/",
+		"~/": "./app/",
+
+		"@deno/vite-plugin": "npm:@deno/vite-plugin@^1.0.4",
 		"@std/http": "jsr:@std/http@^1.0.4",
 		"@std/io": "jsr:@std/io",
 		"@std/path": "jsr:@std/path@^1.0.3",
 		"@types/express": "npm:@types/express@^4.17.21",
 		"@types/react-dom": "npm:@types/react-dom@^18.3.0",
 		"@types/react": "npm:@types/react@^18.3.0",
-		"~/": "./app/",
 		"isbot": "npm:isbot@^5.1.17",
 		"react-dom": "npm:react-dom@^18.3.1",
 		"react": "npm:react@^18.3.1",

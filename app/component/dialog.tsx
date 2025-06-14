@@ -1,7 +1,5 @@
 import { CSSProperties, ReactNode } from "react";
-import { CSSProperties, ReactNode } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { RouteContext } from "htmx-router";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 
 

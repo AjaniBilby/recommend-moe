@@ -1,10 +1,7 @@
-import { CSSProperties, ReactNode } from "react";
-import { CSSProperties, ReactNode } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { RouteContext } from "htmx-router";
-import { faXmark } from "@fortawesome/free-solid-svg-icons";
+import { ReactNode } from "react";
 
-import { ServerDialog } from "~/component/dialog";
+import { Dialog } from "~/component/dialog.tsx";
 
 
 export function DialogResponse(ctx: RouteContext | Headers, body: ReactNode) {
@@ -13,7 +10,7 @@ export function DialogResponse(ctx: RouteContext | Headers, body: ReactNode) {
 	headers.set("hx-reswap", "beforeend");
 	headers.set("hx-push-url", "false");
 
-	return <ServerDialog>{body}</ServerDialog>
+	return <Dialog>{body}</Dialog>
 }
 
 export function AppendResponse(ctx: RouteContext | Headers, body: ReactNode) {

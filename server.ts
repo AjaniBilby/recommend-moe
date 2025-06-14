@@ -3,10 +3,9 @@ import { createRequestHandler } from 'htmx-router';
 import { renderToString } from 'react-dom/server';
 
 import { ServeStatic, StaticResponse } from "~/server/static.ts";
+import { connectToWeb } from "./patch/connectToWeb.ts";
 
-const port = Number(process.env.PORT) || 3000;
-
-const isProduction = process.env.NODE_ENV === "production";
+const isProduction = Deno.env.get("NODE_ENV") === "production";
 const viteDevServer = isProduction
 	? null
 	: await import("vite").then((vite) =>
@@ -15,22 +14,19 @@ const viteDevServer = isProduction
 				appType: 'custom'
 			})
 		);
+const viteWrapper = viteDevServer ? connectToWeb(viteDevServer.middlewares) : undefined;
 
-if (viteDevServer) {
-	// app.use(viteDevServer.middlewares)
-} else {
+if (!viteDevServer) {
 	ServeStatic("dist/server/dist/asset", "/dist/asset");
 	ServeStatic("dist/client");
 }
 
 ServeStatic("public");
 
-// logging
-// app.use(morgan("tiny"));
 
 const build = viteDevServer
-	? () => viteDevServer.ssrLoadModule('./app/entry.server.ts')
-	: await import('./dist/server/entry.server.js');
+	? () => viteDevServer.ssrLoadModule("./app/entry.server.ts")
+	: await import("./dist/server/entry.server.js");
 
 const handler = createRequestHandler.native({
 	build, viteDevServer,
@@ -45,15 +41,22 @@ const handler = createRequestHandler.native({
 	}
 });
 
-const server = Deno.serve({ port }, async (req: Request) => {
-	{ // try static index lookup first
-		const res = StaticResponse(req);
-		if (res !== null) return await res;
-	}
+export default {
+	async fetch (req: Request) {
+		{ // try static index lookup first
+			const res = StaticResponse(req);
+			if (res !== null) return await res;
+		}
 
-	const res = await handler(req);
-	return res.response;
-});
+		if (viteWrapper) {
+			const res = await viteWrapper(req);
+			if (res) return res;
+		}
+
+		const res = await handler(req);
+		return res.response;
+	}
+}
 
 
 // Reload pages on file change
@@ -66,39 +69,6 @@ if (viteDevServer) {
 	});
 }
 
-const shutdown = () => {
-	console.info("Shutting down server...");
-
-	// Close the server gracefully
-	// server.close((err) => {
-	// 	if (err) {
-	// 		console.error("Error during server shutdown:", err);
-	// 		process.exit(1);
-	// 	}
-	// 	console.info("Server shut down gracefully.");
-	// 	process.exit(0);
-	// });
-	server.shutdown();
-};
-
 // Deno.addSignalListener("SIGINT", shutdown);
 // Deno.addSignalListener("SIGTERM", shutdown);
 // Deno.addSignalListener("SIGHUP", shutdown);
-
-
-// Handle uncaught exceptions
-globalThis.addEventListener("error", (event) => {
-	console.error(event.error, "Uncaught Exception thrown");
-	event.preventDefault(); // Prevent Deno from printing its default error
-	Deno.exit(1);
-});
-
-// Handle unhandled promise rejections
-globalThis.addEventListener("unhandledrejection", (event) => {
-	console.error(
-		event.reason,
-		"Unhandled Rejection at Promise",
-		event.promise,
-	);
-	event.preventDefault();
-});
