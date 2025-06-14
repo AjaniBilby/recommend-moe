@@ -1,8 +1,5 @@
 import invariant from "tiny-invariant";
-import process from "node:process";
-import { Prisma } from "@prisma/client";
-import { PrismaClient } from '../build/prisma/index.js';
-import { hostname } from "os";
+import { PrismaClient } from "@prisma/index.ts";
 
 // import { StartSchedulerService } from "~/procedure/scheduler.server";
 import { Singleton } from "~/util/singleton.ts";
@@ -10,7 +7,8 @@ import { Singleton } from "~/util/singleton.ts";
 const prisma = Singleton("prisma", getClient);
 
 function getClient() {
-	const DATABASE_URL = process.env.DATABASE_URL;
+	const DATABASE_URL = Deno.env.get("DATABASE_URL");
+	console.log(DATABASE_URL);
 	invariant(typeof DATABASE_URL === "string", "DATABASE_URL env var not set");
 
 	const databaseUrl = new URL(DATABASE_URL);
@@ -36,11 +34,11 @@ function getClient() {
 }
 
 // temporary fix
-import * as runtime from "@prisma/client/runtime/library";
-export const Decimal = runtime.Decimal;
-export const sql = {
-	join: runtime.join,
-	str:  runtime.sqltag,
-}
+// import * as runtime from "@prisma/runtime/library.js";
+// export const Decimal = runtime.Decimal;
+// export const sql = {
+// 	join: runtime.join,
+// 	str:  runtime.sqltag,
+// }
 
 export { prisma };

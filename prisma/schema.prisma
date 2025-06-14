@@ -6,8 +6,7 @@ datasource db {
 
 generator client {
 	provider = "prisma-client"
-	output = "../../build/prisma"
-	moduleFormat = "esm"
+	output = "../build/prisma"
 	previewFeatures = ["fullTextSearchPostgres", "relationJoins", "postgresqlExtensions", "typedSql", "postgresqlExtensions"]
 	runtime = "deno"
 }

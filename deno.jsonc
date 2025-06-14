@@ -3,7 +3,7 @@
 		"build": "deno run -A npm:@remix-run/dev@^2.11.2 vite:build",
 		"build:htmx": "deno run -A npm:htmx-router",
 		"check": "deno check '**/*' && deno run -A npm:typescript@^5.5.4/tsc",
-		"dev": "deno run -A server.ts",
+		"dev": "deno run -A --env-file server.ts",
 		"lint": "deno lint",
 		"prisma": "deno run -A npm:prisma",
 		"prisma:generate": "deno task prisma generate",
@@ -20,6 +20,8 @@
 		"types": ["react", "react-dom", "@types/react", "./types.d.ts"]
 	},
 	"imports": {
+		"@deno/vite-plugin": "npm:@deno/vite-plugin@^1.0.4",
+		"@prisma/": "./build/prisma/",
 		"@std/http": "jsr:@std/http@^1.0.4",
 		"@std/io": "jsr:@std/io",
 		"@std/path": "jsr:@std/path@^1.0.3",
@@ -27,15 +29,10 @@
 		"@types/react-dom": "npm:@types/react-dom@^18.3.0",
 		"@types/react": "npm:@types/react@^18.3.0",
 		"~/": "./app/",
-		"express": "npm:express@^4.19.2",
 		"isbot": "npm:isbot@^5.1.17",
-		// "prisma": "./prisma/generated/prisma/index.ts",
-		// "prisma/types": "./prisma/generated/client/index.d.ts",
 		"react-dom": "npm:react-dom@^18.3.1",
 		"react": "npm:react@^18.3.1",
 		"typescript": "npm:typescript@^5.5.4",
-
-		"@deno/vite-plugin": "npm:@deno/vite-plugin@^1.0.4",
 		"vite-tsconfig-paths": "npm:vite-tsconfig-paths@^5.1.3",
 		"vite": "npm:vite@^6.3.2"
 	},
