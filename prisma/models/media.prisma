@@ -1,0 +1,34 @@
+enum MediaKind {
+	Anime
+}
+
+model Media {
+	id Int @id @default(autoincrement())
+
+	title String @db.Citext()
+	@@index([title])
+
+	kind MediaKind
+	icon String
+
+	userScores UserMediaScore[]
+	referred ExternalMedia[]
+}
+
+
+enum ExternalKind {
+	MyAnimeList
+	AniList
+}
+model ExternalMedia {
+	type ExternalKind
+	id   String @id
+
+	media   Media @relation(fields: [mediaID], references: [id], onUpdate: Cascade, onDelete: Cascade)
+	mediaID Int
+
+	// any extra data needed to be stored
+	data Json @default("{}")
+
+	@@unique([mediaID, type])
+}

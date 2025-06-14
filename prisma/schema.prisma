@@ -1,0 +1,18 @@
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [pg_trgm, citext]
+}
+
+generator client {
+	provider = "prisma-client"
+	output = "../../build/prisma"
+	moduleFormat = "esm"
+	previewFeatures = ["fullTextSearchPostgres", "relationJoins", "postgresqlExtensions", "typedSql", "postgresqlExtensions"]
+	runtime = "deno"
+}
+
+generator json {
+	provider = "prisma-json-types-generator"
+	namespace = "PrismaJson"
+}

@@ -1,7 +1,7 @@
 import invariant from "tiny-invariant";
 import process from "node:process";
 import { Prisma } from "@prisma/client";
-import { PrismaClient } from '../build/prisma/index';
+import { PrismaClient } from '../build/prisma/index.js';
 import { hostname } from "os";
 
 // import { StartSchedulerService } from "~/procedure/scheduler.server";

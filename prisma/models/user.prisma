@@ -1,0 +1,58 @@
+model User {
+	id Int @id @default(autoincrement())
+
+	scores   UserMediaScore[]
+	accounts ExternalUser[]
+
+	affinitiesAsA UserAffinity[] @relation("UserAffinityA")
+  affinitiesAsB UserAffinity[] @relation("UserAffinityB")
+
+	createdAt DateTime @default(now())
+	updatedAt DateTime @default(now()) @updatedAt
+}
+
+model ExternalUser {
+	type ExternalKind
+	id   String @id
+
+	user   User @relation(fields: [userID], references: [id], onUpdate: Cascade, onDelete: Cascade)
+	userID Int
+
+	// any extra data needed to be stored
+	data Json @default("{}")
+
+	@@unique([userID, type])
+}
+
+
+
+model UserMediaScore {
+	user   User @relation(fields: [userID], references: [id], onUpdate: Cascade, onDelete: Cascade)
+	userID Int
+
+	media   Media @relation(fields: [mediaID], references: [id], onUpdate: Cascade, onDelete: Cascade)
+	mediaID Int
+
+	@@unique([userID, mediaID])
+	@@index([mediaID])
+
+	score Float @default(0) /// scale 0-1
+
+	updatedAt DateTime @default(now()) @updatedAt // helpful for making affinities stale
+}
+
+model UserAffinity {
+	a   User @relation("UserAffinityA",fields: [aID], references: [id], onUpdate: Cascade, onDelete: Cascade)
+	aID Int /// aID < bID
+	b   User @relation("UserAffinityB",fields: [bID], references: [id], onUpdate: Cascade, onDelete: Cascade)
+	bID Int /// aID < bID
+
+	@@unique([aID, bID])
+	@@index([bID])
+
+	score     Float @default(0)
+	updatedAt DateTime @default(now()) @updatedAt
+
+	stale Boolean @default(true)
+	@@index([stale])
+}

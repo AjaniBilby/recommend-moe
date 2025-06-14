@@ -21,3 +21,6 @@ results/*
 app/component/server/defer.tsx
 app/component/server/head.tsx
 app/component/server/scripts.tsx
+/generated/prisma
+
+/generated/prisma
