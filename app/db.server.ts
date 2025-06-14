@@ -1,10 +1,11 @@
 import invariant from "tiny-invariant";
+import process from "node:process";
 import { Prisma } from "@prisma/client";
 import { PrismaClient } from '../build/prisma/index';
 import { hostname } from "os";
 
 // import { StartSchedulerService } from "~/procedure/scheduler.server";
-import { Singleton } from "~/util/singleton";
+import { Singleton } from "~/util/singleton.ts";
 
 const prisma = Singleton("prisma", getClient);
 
@@ -29,7 +30,7 @@ function getClient() {
 	// connect eagerly
 	client.$connect();
 
-	setTimeout(Init, 0);
+	// setTimeout(Init, 0);
 
 	return client;
 }

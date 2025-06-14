@@ -11,7 +11,7 @@ generator client {
 	runtime = "deno"
 }
 
-generator json {
-	provider = "prisma-json-types-generator"
-	namespace = "PrismaJson"
-}
+// generator json {
+// 	provider = "prisma-json-types-generator"
+// 	namespace = "PrismaJson"
+// }

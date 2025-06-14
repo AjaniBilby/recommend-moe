@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-
+// deno-lint-ignore-file no-explicit-any
 let activeRequests = 0;
 const updateLoadingAttribute = () => {
 	if (activeRequests > 0) document.body.setAttribute('data-loading', 'true');
@@ -9,7 +7,7 @@ const updateLoadingAttribute = () => {
 
 const originalXHROpen = XMLHttpRequest.prototype.open;
 const originalXHRSend = XMLHttpRequest.prototype.send;
-XMLHttpRequest.prototype.open = function (...args: Parameters<typeof originalXHROpen>) {
+XMLHttpRequest.prototype.open = function (...args: any[]) {
 	this.addEventListener('loadstart', () => {
 		activeRequests++;
 		updateLoadingAttribute();
@@ -20,15 +18,15 @@ XMLHttpRequest.prototype.open = function (...args: Parameters<typeof originalXHR
 		updateLoadingAttribute();
 	});
 
-	originalXHROpen.apply(this, args);
+	originalXHROpen.apply(this, args as any);
 };
 XMLHttpRequest.prototype.send = function (...args) {
-	originalXHRSend.apply(this, args);
+	originalXHRSend.apply(this, args as any);
 };
 
 // Override fetch
-const originalFetch = window.fetch;
-window.fetch = async (...args) => {
+const originalFetch = globalThis.fetch;
+globalThis.fetch = async (...args) => {
 	activeRequests++;
 	updateLoadingAttribute();
 

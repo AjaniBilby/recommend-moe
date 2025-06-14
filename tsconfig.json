@@ -16,7 +16,7 @@
 	],
 	"compilerOptions": {
 		"lib": ["DOM", "DOM.Iterable", "ESNext", "webworker"],
-		"types": ["vite/client", "typed-htmx"],
+		"types": ["vite/client", "typed-htmx", "./types.d.ts"],
 		"isolatedModules": true,
 		"esModuleInterop": true,
 		"jsx": "react-jsx",

@@ -1,8 +1,8 @@
 "use client";
-import "~/manifest";
-import "~/client/request";
+import "~/manifest.ts";
+import "~/client/request.ts";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// deno-lint-ignore no-explicit-any
 const g = globalThis as any;
 g.htmx.config.methodsThatUseUrlParams = ['get'];
 

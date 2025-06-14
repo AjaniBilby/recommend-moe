@@ -4,25 +4,21 @@
 		"build": "deno run -A npm:@remix-run/dev@^2.11.2 vite:build",
 		"build:htmx": "deno run -A npm:htmx-router",
 		"check": "deno check '**/*' && deno run -A npm:typescript@^5.5.4/tsc",
-		"dev": "deno run -A npm:@remix-run/dev@^2.11.2 vite:dev",
+		"dev": "deno run -A server.ts",
 		"lint": "deno lint",
-		"prisma": "deno run -A --unstable npm:prisma",
-		"prisma:generate": "deno task prisma generate && deno task prisma:patch",
-		"prisma:patch": "deno run -A prisma/patch.ts",
-		"prisma:migrate:dev": "npx prisma migrate dev && deno task prisma:patch",
+		"prisma": "deno run -A npm:prisma",
+		"prisma:generate": "deno task prisma generate",
+		"prisma:migrate:dev": "deno task prisma generate migrate dev",
 		"start": "deno serve -A --parallel ./server.production.ts",
 		"test": "deno test ."
 	},
-	"exclude": [
-		"./app/",
-		"./build/"
-	],
+	"exclude": [ "./build/" ],
 	"compilerOptions": {
 		"jsx": "react-jsx",
 		"lib": ["deno.ns", "DOM", "DOM.Iterable", "ES2022", "webworker"],
 		"strict": true,
 		"strictNullChecks": true,
-		"types": ["react", "react-dom", "@types/react"]
+		"types": ["react", "react-dom", "@types/react", "./types.d.ts"]
 	},
 	"imports": {
 		"@std/http": "jsr:@std/http@^1.0.4",

@@ -1,6 +1,10 @@
 {
-	"deno.enable": true,
 	"editor.insertSpaces": false,
 	"files.eol": "\n",
 	"editor.rulers": [ 80, 120 ],
+
+	"deno.enable": true,
+	"deno.suggest.imports.hosts": {
+		"https://deno.land": true
+	}
 }

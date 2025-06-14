@@ -1,14 +1,14 @@
 import { ApplyMetaDefaults, ShellOptions } from "htmx-router/shell";
 import { RouteContext } from "htmx-router";
 
-import { LazyLoad, Link } from "~/component/link";
-import { DialogResponse } from "~/component/server/dialog";
-import { Scripts } from "~/component/server/scripts";
+import { LazyLoad, Link } from "~/component/link.tsx";
+import { DialogResponse } from "~/component/server/dialog.tsx";
+import { Scripts } from "~/component/server/scripts.tsx";
 // import { Navbar } from "~/component/server/navbar";
-import { Head } from "~/component/server/head";
+import { Head } from "~/component/server/head.tsx";
 
 import mainsheetUrl from "~/styles/main.css?url";
-import { CutString } from "~/util/format/text";
+import { CutString } from "~/util/format/text.ts";
 
 
 const headers = <>
@@ -48,7 +48,7 @@ export function loader (){
 
 
 export async function shell(inner: JSX.Element, options: ShellOptions<{ headless?: boolean }>) {
-	ApplyMetaDefaults(options, { title: "Skybase" });
+	ApplyMetaDefaults(options, { title: "Recommend.moe" });
 
 	return <html lang="en">
 		<Head options={options}>
@@ -70,7 +70,7 @@ export async function error(ctx: RouteContext, e: unknown) {
 	if (ctx.request.headers.get("Hx-Request") === "true") return DialogResponse(ctx, body);
 
 	return <html lang="en" >
-		<Head options={{ title: title + " - Skybase" }}>
+		<Head options={{ title: title + " - Recommend.moe" }}>
 			{ headers }
 			<meta name="theme-color" content="#ff0000" />
 			<Scripts />

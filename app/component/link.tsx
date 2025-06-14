@@ -1,19 +1,15 @@
 import { CSSProperties, ReactNode } from "react";
 
-import { RunningSpinner } from "~/component/status";
+import { RunningSpinner } from "~/component/status.tsx";
 
 type Preload = "mouseover" | "mousedown" | "none" | "always";
-export function Link(props: { preload?: Preload, newWindow?: boolean | WindowConfig } & JSX.IntrinsicElements["a"]) {
-	const { style, newWindow, ...restProps } = props;
+export function Link(props: { preload?: Preload } & JSX.IntrinsicElements["a"]) {
+	const { style, ...restProps } = props;
 
 	return <a
 		style={{ color: "unset", textDecoration: "inherit", ...style }}
 		hx-target="body"
 		hx-swap="innerHTML"
-		data-new-window={newWindow === true ? true
-			: typeof newWindow === "object" ? JSON.stringify(newWindow)
-			: undefined}
-		hx-boost={newWindow ? "false" : undefined}
 		{...restProps}
 	></a>;
 }
