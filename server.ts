@@ -41,21 +41,29 @@ const handler = createRequestHandler.native({
 	}
 });
 
-export default {
-	async fetch (req: Request) {
-		{ // try static index lookup first
-			const res = StaticResponse(req);
-			if (res !== null) return await res;
-		}
+const certs = await GetCerts();
 
-		if (viteWrapper) {
-			const res = await viteWrapper(req);
-			if (res) return res;
-		}
+Deno.serve({
+	port: 443,
+	cert: Deno.readTextFileSync("./cert.pem"),
+	key: Deno.readTextFileSync("./key.pem"),
+}, Handler)
 
-		const res = await handler(req);
-		return res.response;
+async function Handler(req: Request): Promise<Response> {
+	console.log("hi")
+	const url = new URL(req.url);
+	{ // try static index lookup first
+		const res = StaticResponse(req);
+		if (res !== null) return await res;
 	}
+
+	if (viteWrapper && (url.pathname.startsWith("/@vite") || url.pathname.startsWith("/app/"))) {
+		const res = await viteWrapper(req);
+		if (res) return res;
+	}
+
+	const res = await handler(req);
+	return res.response;
 }
 
 
@@ -72,3 +80,17 @@ if (viteDevServer) {
 // Deno.addSignalListener("SIGINT", shutdown);
 // Deno.addSignalListener("SIGTERM", shutdown);
 // Deno.addSignalListener("SIGHUP", shutdown);
+
+
+async function GetCerts() {
+	const certPath = Deno.env.get("CERT_PATH");
+	const keyPath = Deno.env.get("KEY_PATH");
+	if (!certPath || !keyPath) return undefined;
+
+	console.log(certPath, keyPath);
+
+	return {
+		cert: await Deno.readTextFile(certPath),
+		key:  await Deno.readTextFile(keyPath)
+	}
+}

@@ -22,7 +22,7 @@ const headers = <>
 	<script src="https://unpkg.com/hx-keep@1.1.1"          crossOrigin="anonymous"></script>
 	<script src="https://unpkg.com/hx-prep@1.0.0"          crossOrigin="anonymous"></script>
 	<script src="https://unpkg.com/d-pad@1.0.7"            crossOrigin="anonymous"></script>
-	<script src="https://unpkg.com/hx-stream@0.0.9"        crossOrigin="anonymous"></script>
+	<script src="https://unpkg.com/hx-stream@0.1.1"        crossOrigin="anonymous"></script>
 	<script src="https://unpkg.com/ctrl-p@0.0.4"           crossOrigin="anonymous"></script>
 	<link href={mainsheetUrl} rel="stylesheet"></link>
 
@@ -47,7 +47,7 @@ export function loader (){
 }
 
 
-export async function shell(inner: JSX.Element, options: ShellOptions<{ headless?: boolean }>) {
+export function shell(inner: JSX.Element, options: ShellOptions<{ headless?: boolean }>) {
 	ApplyMetaDefaults(options, { title: "Recommend.moe" });
 
 	return <html lang="en">
