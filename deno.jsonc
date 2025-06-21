@@ -18,7 +18,7 @@
 		"build:server": "deno run -A npm:vite build --ssr app/entry.server.ts --outDir dist/server",
 
 		"preview": "NODE_ENV=production deno serve -A --env-file server.ts",
-		"dev": "deno run -A --env-file server.ts"
+		"dev": "deno serve -A --env-file server.ts"
 	},
 	"exclude": [ "./build/" ],
 	"compilerOptions": {

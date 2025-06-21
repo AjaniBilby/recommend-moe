@@ -5,8 +5,7 @@ enum MediaKind {
 model Media {
 	id Int @id @default(autoincrement())
 
-	title String @db.Citext()
-	@@index([title])
+	title String @db.Citext() @unique
 
 	kind MediaKind
 	icon String

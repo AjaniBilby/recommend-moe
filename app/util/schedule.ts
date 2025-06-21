@@ -6,6 +6,21 @@ export function WaitTick() {
 	return new Promise<void>((res) => queueMicrotask(res))
 }
 
+const blankFunction = () => {};
+export class LazyValue<T> {
+	#resolver: (v: T) => void;
+	readonly promise: Promise<T>;
+
+	constructor() {
+		this.#resolver = blankFunction;
+		this.promise = new Promise((res) => this.#resolver = res);
+	}
+
+	resolve(v: T) {
+		this.#resolver(v);
+	}
+}
+
 
 export class Mutex {
 	#queue: Array<() => void>;
@@ -35,6 +50,43 @@ export class Mutex {
 		const q = [...this.#queue];
 		this.#queue.length = 0;
 		for (const f of q) f();
+	}
+}
+
+export class Channel<T> {
+	#resolvers: Array<(v: T) => void>;
+	#queue: T[];
+	#open: boolean;
+
+	constructor() {
+		this.#resolvers = [];
+		this.#queue = [];
+		this.#open = true;
+	}
+
+	close () { this.#open = false; }
+
+	// "Write" to the queue
+	write(value: T) {
+		if (!this.#open) throw new Error("Cannot write to a closed channel");
+
+		const res = this.#resolvers.shift();
+		if (res) return res(value);
+		this.#queue.push(value);
+	}
+
+	read() {
+		if (this.#queue.length > 0) return this.#queue.shift();
+
+		if (!this.#open) return undefined;
+
+		return new Promise((resolve) => {
+			this.#resolvers.push(resolve);
+		});
+	}
+
+	async *[Symbol.asyncIterator]() { // for await...of
+		while (this.#open) yield await this.read();
 	}
 }
 

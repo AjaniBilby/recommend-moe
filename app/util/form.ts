@@ -1,3 +1,5 @@
+import { CutString } from "~/util/format/text.ts";
+
 export { FormStream };
 
 type Reader = ReadableStreamDefaultReader<Uint8Array<ArrayBufferLike>>;
@@ -69,9 +71,7 @@ async function* FormStream(a: Request | Reader, b?: string): AsyncGenerator<Form
 		ctx.draining = true;
 
 		const stream = new ReadableStream<Uint8Array>({
-			start(c) {
-				DrainField(ctx, c);
-			},
+			start(c) { DrainField(ctx, c); },
 		});
 
 		yield { disposition, headers, stream };
@@ -91,7 +91,7 @@ async function* FormStream(a: Request | Reader, b?: string): AsyncGenerator<Form
 }
 
 
-export async function DrainFormStreamField(reader: ReadableStreamDefaultReader<Uint8Array<ArrayBufferLike>>) {
+export async function FormStreamTextField(reader: ReadableStreamDefaultReader<Uint8Array<ArrayBufferLike>>) {
 	const chunks: Uint8Array[] = [];
 
 	try {
@@ -105,6 +105,18 @@ export async function DrainFormStreamField(reader: ReadableStreamDefaultReader<U
 	}
 
 	return ConcatBuffers(chunks);
+}
+
+export async function FormStreamEmptyField(reader: ReadableStreamDefaultReader<Uint8Array<ArrayBufferLike>>) {
+	try {
+		while (true) {
+			const { done } = await reader.read();
+			if (done) break;
+		}
+	} finally {
+		reader.releaseLock();
+	}
+
 }
 
 
@@ -251,44 +263,4 @@ function BufferMatchAt(buffer: Uint8Array, sequence: Uint8Array, offset = 0): bo
 	}
 
 	return true;
-}
-
-
-
-
-export function CutString(str: string, pivot: string, offset = 1): [string, string] {
-	const idx = CutStringIndex(str, pivot, offset);
-	return [str.slice(0, idx), str.slice(idx+pivot.length)]
-}
-
-function CutStringIndex(str: string, pivot: string, offset = 1): number {
-	if (offset === 0) return str.length;
-
-	if (offset > 0) {
-		let cursor = 0;
-		while (offset !== 0) {
-			const i = str.indexOf(pivot, cursor);
-			if (i === -1) return str.length;
-			cursor = i+1;
-			offset--;
-		}
-		cursor--;
-
-		return cursor;
-	}
-
-	if (offset < 0) {
-		let cursor = str.length;
-		while (offset !== 0) {
-			const i = str.lastIndexOf(pivot, cursor);
-			if (i === -1) return str.length;
-			cursor = i-1;
-			offset++;
-		}
-		cursor++;
-
-		return cursor;
-	}
-
-	return str.length;
 }
