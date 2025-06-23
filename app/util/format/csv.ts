@@ -39,16 +39,17 @@ import { LazyValue } from "~/util/schedule.ts";
  * // [ 'g', 'h', 'i with "escaped" quotes' ]
  * ```
  */
-export async function* CsvStream(stream: ReadableStream<string>): AsyncGenerator<string[]> {
-	const reader = stream.getReader();
-
+const decoder = new TextDecoder();
+export async function* CsvStream(stream: AsyncGenerator<Uint8Array>): AsyncGenerator<string[]> {
 	let inQuote = false;
 	let row: string[] = [];
 	let buffer = "";
 
 	while (true) {
-		const { done, value } = await reader.read();
-		const chunk = value || "";
+		const { done, value } = await stream.next();
+		if (!value) break;
+
+		const chunk = decoder.decode(value);
 
 		for (let i=0; i<chunk.length; i++) {
 			const char = chunk[i];
@@ -95,7 +96,7 @@ export async function* CsvStream(stream: ReadableStream<string>): AsyncGenerator
 	if (row.length > 0) yield row;
 }
 
-export async function* CsvStreamWithHeaders(stream: ReadableStream<string>): AsyncGenerator<Record<string, string>> {
+export async function* CsvStreamWithHeaders(stream: AsyncGenerator<Uint8Array>): AsyncGenerator<Record<string, string>> {
 	let header: string[] | undefined;
 	for await (const line of CsvStream(stream)) {
 		if (!header) {
@@ -118,16 +119,14 @@ export function CsvFormStream<T extends string[]>(request: Request, format: T) {
 		let done = false;
 
 		for await (const field of FormStream(request)) {
-			if (done) {
-				await FormStreamEmptyField(field.stream.getReader());
-				continue;
-			}
+			if (done) continue;
 
-			if (!field.disposition.filename) await FormStreamEmptyField(field.stream.getReader());
-			if (field.headers.get("content-type") !== "text/csv") await FormStreamEmptyField(field.stream.getReader());
+			console.log(field);
 
-			const textStream = field.stream.pipeThrough(new TextDecoderStream());
-			const csv = CsvStream(textStream);
+			if (!field.disposition.filename) continue;
+			if (field.headers.get("content-type") !== "text/csv") continue;
+
+			const csv = CsvStream(field.stream);
 
 			const header = await csv.next();
 			if (header.done || !header.value) continue;
@@ -139,7 +138,7 @@ export function CsvFormStream<T extends string[]>(request: Request, format: T) {
 				continue;
 			}
 
-			res(ShapeCsvStream(csv, format));
+			res(ShapeCsvStream(csv, header.value as T));
 			done = true;
 			break;
 		}

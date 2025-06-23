@@ -11,8 +11,6 @@ import { prisma } from "~/db.server.ts";
 export function loader() {
 	return shell(<div hx-ext="hx-stream">
 		<form method="POST" encType="multipart/form-data" hx-target="#results" hx-swap="innerHTML" hx-stream="on">
-			<input name="email" defaultValue="test@example.com"></input>
-			<input name="pass"  defaultValue="password"></input>
 			<input type="file" name="file"></input>
 			<button type="submit">submit</button>
 		</form>

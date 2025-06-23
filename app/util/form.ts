@@ -1,4 +1,5 @@
 import { CutString } from "~/util/format/text.ts";
+import { Mutex } from "~/util/schedule.ts";
 
 export { FormStream };
 
@@ -7,7 +8,7 @@ type Reader = ReadableStreamDefaultReader<Uint8Array<ArrayBufferLike>>;
 export type FormStreamField = {
 	disposition: Record<string, string> & { name: string };
 	headers:     Headers;
-	stream:      ReadableStream<Uint8Array>;
+	stream:      AsyncGenerator<Uint8Array<ArrayBufferLike>, void, unknown>;
 }
 
 const encoder = new TextEncoder();
@@ -70,13 +71,16 @@ async function* FormStream(a: Request | Reader, b?: string): AsyncGenerator<Form
 		ctx.buffer = ctx.buffer.slice(header + headerEnd.byteLength);
 		ctx.draining = true;
 
-		const stream = new ReadableStream<Uint8Array>({
-			start(c) { DrainField(ctx, c); },
-		});
+		ctx.mutex.block();
+		const stream = Drain(ctx);
 
 		yield { disposition, headers, stream };
 
-		if (ctx.draining) throw new Error("Attempted to continue generator when previous field hasn't been drained");
+		while (true) { // drain any remaining values
+			const res = await stream.next();
+			if (res.done) break;
+			console.log('drain');
+		}
 
 
 		if (ctx.buffer.byteLength < crlfBytes.byteLength) await ctx.readChunk();
@@ -119,35 +123,32 @@ export async function FormStreamEmptyField(reader: ReadableStreamDefaultReader<U
 
 }
 
-
-async function DrainField(ctx: FormStreamContext, controller: ReadableStreamDefaultController<Uint8Array<ArrayBufferLike>>) {
+async function* Drain(ctx: FormStreamContext) {
 	while (true) {
 		const i = FindSequence(ctx.buffer, ctx.border);
 		if (i !== -1) {
-			controller.enqueue(ctx.buffer.slice(0, i));
+			yield ctx.buffer.slice(0, i);
 			ctx.drain(i+ctx.border.byteLength);
 			break;
 		}
 
 		if (ctx.done) {
-			controller.enqueue(ctx.buffer);
+			yield ctx.buffer;
 			break;
 		}
 
 		const tail = ctx.border.byteLength-1;
 		const till = ctx.buffer.byteLength - tail;
-		controller.enqueue(ctx.buffer.slice(0, till));
+		yield ctx.buffer.slice(0, till);
 		ctx.drain(tail);
 
 		await ctx.readChunk();
 	}
-
-	controller.close();
-	ctx.draining = false;
 }
 
 
 class FormStreamContext {
+	readonly mutex: Mutex;
 	readonly reader: Reader;
 	readonly boundary: Uint8Array;
 	readonly border: Uint8Array;
@@ -157,6 +158,7 @@ class FormStreamContext {
 	draining: boolean;
 
 	constructor (boundary: string, reader: Reader) {
+		this.mutex = new Mutex();
 		this.boundary = encoder.encode(`--${boundary}`);
 		this.border = encoder.encode(`\r\n--${boundary}`);
 		this.reader = reader;
