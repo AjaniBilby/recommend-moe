@@ -34,7 +34,7 @@ model UserMediaScore {
 	mediaID Int
 
 	@@unique([userID, mediaID])
-	@@index([mediaID])
+	@@index([mediaID, userID, score])
 
 	score Float @default(0) /// scale 0-1
 

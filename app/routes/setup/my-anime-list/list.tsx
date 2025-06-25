@@ -41,18 +41,17 @@ async function ProcessCsv(stream: StreamResponse<true>, props: { csv: CsvStream 
 		console.log(count, (count / (Date.now()-start)).toFixed(2));
 	}
 
-	for await (const lines of BatchGeneratorResults(props.csv, 10_000)) Batch(lines).then(resolve).catch(console.error);
+	for await (const lines of BatchGeneratorResults(props.csv, 10_000)) Batch(lines.map(x => ({
+		user_id:  x.username,
+		media_id: x.anime_id,
+		score: (Number(x.my_score) || 0)/10
+	}))).then(resolve).catch(console.error);
 
 	stream.close();
 }
 
 
-async function Batch(lines: Record<"username" | "anime_id" | "my_score", string>[]) {
-	const json = lines.map(x => ({
-		user_id:  x.username,
-		media_id: x.anime_id,
-		score: (Number(x.my_score) || 0)/10
-	}));
+async function Batch(json: { user_id: string, media_id: string, score: number}[]) {
 	await prisma.$queryRawTyped(IngestUserScores("MyAnimeList", JSON.stringify(json)));
-	return lines.length;
+	return json.length;
 }
