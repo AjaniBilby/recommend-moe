@@ -42,11 +42,6 @@ const header = <div id="header" hx-preserve="true">
 </div>;
 
 
-export function loader (){
-	return new Response("No Route Found", { status: 404, statusText: "Not Found" });
-}
-
-
 export function shell(inner: JSX.Element, options: ShellOptions<{ headless?: boolean }>) {
 	ApplyMetaDefaults(options, { title: "Recommend.moe" });
 

@@ -1,5 +1,5 @@
 import * as path from "node:path";
-import { createRequestHandler } from 'htmx-router';
+import { createHtmxServer } from 'htmx-router/server.js';
 import { renderToString } from 'react-dom/server';
 
 import { ServeStatic, StaticResponse } from "~/server/static.ts";
@@ -28,7 +28,7 @@ const build = viteDevServer
 	? () => viteDevServer.ssrLoadModule("./app/entry.server.ts")
 	: await import("./dist/server/entry.server.js");
 
-const handler = createRequestHandler.native({
+const htmx = createHtmxServer({
 	build, viteDevServer,
 	render: (res, headers) => {
 		if (isProduction) headers.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
@@ -44,19 +44,13 @@ const handler = createRequestHandler.native({
 
 export default {
 	async fetch (req) {
-		const url = new URL(req.url);
 		{ // try static index lookup first
 			const res = StaticResponse(req);
 			if (res !== null) return await res;
 		}
 
-		if (viteWrapper && (url.pathname.startsWith("/@vite") || url.pathname.startsWith("/app/"))) {
-			const res = await viteWrapper(req);
-			if (res) return res;
-		}
-
-		const res = await handler(req);
-		return res.response;
+		const res = await htmx.resolve(req, true);
+		return res;
 	}
 } satisfies Deno.ServeDefaultExport
 

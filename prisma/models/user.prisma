@@ -33,8 +33,8 @@ model UserMediaScore {
 	media   Media @relation(fields: [mediaID], references: [id], onUpdate: Cascade, onDelete: Cascade)
 	mediaID Int
 
-	@@unique([userID, mediaID])
-	@@index([mediaID, userID, score])
+	@@index([mediaID, userID, score]) // covering index
+	@@unique([userID, mediaID])       // not needed for user:user since low overlap
 
 	score Float @default(0) /// scale 0-1
 
