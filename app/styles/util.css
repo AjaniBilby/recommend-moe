@@ -13,6 +13,7 @@ nav.breadcrumb {
 .text-center { text-align: center; }
 .text-left   { text-align: left;   }
 .text-bold   { font-weight: bold;  }
+.text-mono   { font-family: Geist-Mono; }
 
 
 .focus-grow {
@@ -95,4 +96,25 @@ ul.csv li:last-child::after {
 
 @keyframes pulse {
 	50% { opacity: 50%;}
+}
+
+
+.on-hover:not(:hover) .on-hover-show {
+	display: none !important;
+}
+.on-hover:hover .on-hover-hide {
+	display: none !important;
+}
+.on-hover:hover .on-hover-highlight, .on-hover-highlight:hover {
+	background-color: hsl(var(--muted));
+}
+
+.on-focus:focus .on-focus-grow, .on-focus-grow:focus {
+	flex-grow: 1;
+}
+
+.on-hover-scale { transition: scale .1s; }
+.on-hover:hover .on-hover-scale, .on-hover-scale:hover {
+	scale: 1.2;
+	z-index: 1000;
 }

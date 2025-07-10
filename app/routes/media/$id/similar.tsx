@@ -1,6 +1,7 @@
 import { RouteContext } from "htmx-router";
+import { Style } from "htmx-router/css";
 
-import { Link } from "~/component/link.tsx";
+import { MediaCard } from "~/component/media.tsx";
 
 import { prisma } from "~/db.server.ts";
 
@@ -13,12 +14,12 @@ export async function loader({ params }: RouteContext<typeof parameters>) {
 
 	const similar = await prisma.$queryRaw<{ id: number, title: string, icon: string }[]>`
 		WITH "affinity" AS (
-			SELECT b."mediaID", 1.0-AVG(ABS(a."score" - b."score")) as "affinity", COUNT(*) as "overlap"
+			SELECT b."mediaID", 1.0-AVG(ABS(a."score" - b."score")) as "affinity"
 			FROM "UserMediaScore" a
 			INNER JOIN "UserMediaScore" b ON a."userID" = b."userID" and a."mediaID" != b."mediaID"
 			WHERE a."mediaID" = ${params.id} and a."score" != 0 and b."score" != 0
 			GROUP BY b."mediaID"
-			HAVING COUNT(*) > 10
+			HAVING COUNT(*) > 100 and 1.0-AVG(ABS(a."score" - b."score")) > 0.7
 			ORDER BY "affinity" desc
 			LIMIT 500
 		)
@@ -35,26 +36,59 @@ export async function loader({ params }: RouteContext<typeof parameters>) {
 	for (const media of similar) {
 		const affinity = Math.floor(media.affinity*100);
 		if (affinity !== prev) {
-			jsx.push(<div style={{ gridColumn: "1/-1", display: "flex", alignItems: "center", gap: "10px" }} className="muted-text">
-				<div>{affinity}%</div>
-				<hr style={{ margin: 0, flexGrow: 1 }}></hr>
+			jsx.push(<div className="line">
+				<div className="percent">{affinity}%</div>
+				<hr></hr>
 			</div>);
 			prev = affinity;
 		}
 
-		jsx.push(<Link href={`/media/${media.id}`}>
-			<div style={{
-				aspectRatio: "2/3",
-				backgroundImage: `url(/media/${media.id}/cover)`,
-				backgroundPosition: "center",
-				backgroundSize: "cover",
-				position: "relative"
-			}}></div>
-			<div style={{ textAlign: "center" }}>{media.title}</div>
-		</Link>)
+		jsx.push(<MediaCard media={media} />)
 	}
 
-	return <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))", gap: "10px" }}>
+	return <div className={similarityStyle}>
 		{jsx}
 	</div>
 }
+
+
+
+
+const similarityStyle = new Style("similarity", `
+.this {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+	gap: 10px;
+}
+
+.this .line {
+	color: hsl(var(--muted-foreground));
+	grid-column: 1/-1;
+	display: flex;
+	align-items: center;
+
+	position: sticky;
+	top: 0;
+	z-index: 2;
+}
+.this .line .percent {
+	background-color: hsl(var(--background));
+	border-radius: 0 0 var(--radius) 0;
+	padding-bottom: 4px;
+	padding-right: 10px;
+}
+.this .line hr {
+	margin: 0;
+	margin-top: -4px;
+	flex-grow: 1;
+}
+
+.this .skeleton {
+	display: block;
+	aspect-ratio: 2/3;
+	height: unset !important;
+}
+`).name;
+
+const skeleton = `<div class="skeleton"></div>`.repeat(5);
+export const SimilaritySkeleton = <div className={similarityStyle} dangerouslySetInnerHTML={{ __html: skeleton }}></div>;

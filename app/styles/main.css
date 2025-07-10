@@ -330,15 +330,8 @@ textarea {
 	background-color: hsl(var(--muted));
 	color: hsl(var(--muted-foreground)) !important;
 }
-.muted-text {
-	color: hsl(var(--muted-foreground)) !important;
-}
-.mono-text {
-	font-family: Geist-Mono;
-}
-.foreground-text {
-	color: hsl(var(--foreground)) !important;
-}
+
+
 .destructive {
 	background-color: hsl(var(--destructive));
 	color: hsl(var(--destructive-foreground)) !important;
@@ -392,18 +385,20 @@ textarea {
 	background-color: hsl(var(--violet)) !important;
 	color: hsl(var(--violet-foreground)) !important;
 }
-.zinc-text    { color: hsl(var(--zinc))    !important; }
-.slate-text   { color: hsl(var(--slate))   !important; }
-.stone-text   { color: hsl(var(--stone))   !important; }
-.gray-text    { color: hsl(var(--gray))    !important; }
-.neutral-text { color: hsl(var(--neutral)) !important; }
-.red-text     { color: hsl(var(--red))     !important; }
-.rose-text    { color: hsl(var(--rose))    !important; }
-.orange-text  { color: hsl(var(--orange))  !important; }
-.green-text   { color: hsl(var(--green))   !important; }
-.blue-text    { color: hsl(var(--blue))    !important; }
-.yellow-text  { color: hsl(var(--yellow))  !important; }
-.violet-text  { color: hsl(var(--violet))  !important; }
+
+.text-muted   { color: hsl(var(--muted-foreground)) !important; }
+.text-zinc    { color: hsl(var(--zinc))    !important; }
+.text-slate   { color: hsl(var(--slate))   !important; }
+.text-stone   { color: hsl(var(--stone))   !important; }
+.text-gray    { color: hsl(var(--gray))    !important; }
+.text-neutral { color: hsl(var(--neutral)) !important; }
+.text-red     { color: hsl(var(--red))     !important; }
+.text-rose    { color: hsl(var(--rose))    !important; }
+.text-orange  { color: hsl(var(--orange))  !important; }
+.text-green   { color: hsl(var(--green))   !important; }
+.text-blue    { color: hsl(var(--blue))    !important; }
+.text-yellow  { color: hsl(var(--yellow))  !important; }
+.text-violet  { color: hsl(var(--violet))  !important; }
 
 
 button.accent {
@@ -427,20 +422,6 @@ a:focus-visible, select:focus-visible, summary:focus-visible, *[tabindex]:focus-
 .dp-group:focus-visible {
 	outline: 1px dashed hsl(var(--ring)) !important;
 	box-shadow: inset 0 0 5px 0 hsl(var(--ring));
-}
-
-.on-hover:not(:hover) .on-hover-show {
-	display: none !important;
-}
-.on-hover:hover .on-hover-hide {
-	display: none !important;
-}
-.on-hover:hover .on-hover-highlight, .on-hover-highlight:hover {
-	background-color: hsl(var(--muted));
-}
-
-.on-focus:focus .on-focus-grow, .on-focus-grow:focus {
-	flex-grow: 1;
 }
 
 

@@ -9,7 +9,7 @@ export function Link(props: { preload?: Preload } & JSX.IntrinsicElements["a"]) 
 	return <a
 		style={{ color: "unset", textDecoration: "inherit", ...style }}
 		hx-target="body"
-		hx-swap="innerHTML"
+		hx-swap="innerHTML transition:true"
 		{...restProps}
 	></a>;
 }
@@ -27,6 +27,6 @@ export function LazyLoad(props: {
 		{...rest}
 		hx-get={href}
 		hx-target="this"
-		hx-swap="outerHTML"
+		hx-swap="outerHTML transition:true"
 	>{children === undefined ? <RunningSpinner /> : children}</div>
 }

@@ -1,10 +1,10 @@
-"use client";
-import "~/manifest.ts";
+import "./manifest.tsx";
 import "~/client/request.ts";
 
 // deno-lint-ignore no-explicit-any
 const g = globalThis as any;
 g.htmx.config.methodsThatUseUrlParams = ['get'];
+g.htmx.config.globalViewTransitions = true;
 
 document.body.addEventListener('htmx:beforeOnLoad', function (e) {
 	const evt = e as CustomEvent<{

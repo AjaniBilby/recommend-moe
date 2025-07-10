@@ -1,6 +1,6 @@
 import { RouteContext } from "htmx-router";
 
-import { Link } from "~/component/link.tsx";
+import { MediaCard } from "~/component/media.tsx";
 
 import { prisma } from "~/db.server.ts";
 import { shell } from "~/routes/$.tsx";
@@ -16,7 +16,7 @@ export async function loader({ request, url, headers }: RouteContext) {
 			hx-trigger="input changed delay:400ms, submit, change"
 			hx-target="#search-results"
 			hx-replace-url="true"
-			hx-swap="show:none"
+			hx-swap="innerHTML show:none transition:true"
 		>
 			<input type="search"
 				name="q" placeholder="Search..."
@@ -24,7 +24,7 @@ export async function loader({ request, url, headers }: RouteContext) {
 				autoCorrect="off" autoCapitalize="off" autoComplete="off"
 				autoFocus
 			></input>
-			<div className="muted-text" style={{
+			<div className="text-muted" style={{
 				fontStyle: "italic",
 				fontSize: ".8em"
 			}}>name</div>
@@ -33,7 +33,7 @@ export async function loader({ request, url, headers }: RouteContext) {
 		<div id="search-results" style={{
 			marginTop: "1em",
 			display: "grid",
-			gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))",
+			gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
 			gap: "10px",
 		}}>
 			{await Search(query)}
@@ -53,19 +53,10 @@ async function Search(query: string) {
 		SELECT *
 		FROM "Media"
 		ORDER BY similarity("title", ${query}) desc
-		LIMIT 100
+		LIMIT 50
 	`;
 
 	return <>
-		{results.map(media => <Link key={media.id} href={`/media/${media.id}`}>
-			<div style={{
-				aspectRatio: "2/3",
-				backgroundImage: `url(/media/${media.id}/cover)`,
-				backgroundPosition: "center",
-				backgroundSize: "cover",
-				position: "relative"
-			}}></div>
-			<div style={{ textAlign: "center" }}>{media.title}</div>
-		</Link>)}
+		{results.map(media => <MediaCard key={media.id} media={media} />)}
 	</>
 }
