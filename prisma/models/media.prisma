@@ -11,7 +11,10 @@ model Media {
 	icon String
 
 	userScores UserMediaScore[]
-	referred ExternalMedia[]
+	referred   ExternalMedia[]
+
+	affinitiesAsA MediaAffinity[] @relation("MediaAffinityA")
+  affinitiesAsB MediaAffinity[] @relation("MediaAffinityB")
 }
 
 
@@ -30,4 +33,24 @@ model ExternalMedia {
 	data Json @default("{}")
 
 	@@unique([mediaID, type])
+}
+
+
+
+model MediaAffinity {
+	a   Media @relation("MediaAffinityA",fields: [aID], references: [id], onUpdate: Cascade, onDelete: Cascade)
+	aID Int /// aID < bID
+	b   Media @relation("MediaAffinityB",fields: [bID], references: [id], onUpdate: Cascade, onDelete: Cascade)
+	bID Int /// aID < bID
+
+	@@unique([aID, bID])
+	@@index([aID, score(sort: Desc)])
+	@@index([bID, score(sort: Desc)])
+
+	score     Float @default(0)
+	overlap   Int   @default(0)
+	updatedAt DateTime @default(now()) @updatedAt
+
+	stale Boolean @default(true)
+	@@index([stale, aID, bID]) // allow index only reads
 }

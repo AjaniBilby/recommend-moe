@@ -10,7 +10,7 @@
 		"test": "deno test .",
 
 		"prisma": "deno run -A npm:prisma",
-		"prisma:generate": "deno task prisma generate",
+		"prisma:generate": "deno task prisma generate --sql",
 		"prisma:migrate:dev": "deno task prisma generate migrate dev",
 
 		"build": "deno task 'build:*'",

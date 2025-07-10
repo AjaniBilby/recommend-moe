@@ -1,10 +1,8 @@
 import { RouteContext } from "htmx-router";
 
-import { LazyLoad } from "~/component/link.tsx";
-
+import { MediaSimilarity } from "./similar.tsx";
 import { prisma } from "~/db.server.ts";
 import { shell } from "~/routes/$.tsx";
-import { SimilaritySkeleton } from "./similar.tsx";
 
 export const parameters = { id: Number };
 export async function loader({ params }: RouteContext<typeof parameters>) {
@@ -26,9 +24,7 @@ export async function loader({ params }: RouteContext<typeof parameters>) {
 		}}></div>
 
 		<h3>Similar</h3>
-		<LazyLoad href={`/media/${params.id}/similar`}>
-			{SimilaritySkeleton}
-		</LazyLoad>
+		<MediaSimilarity mediaID={params.id} />
 	</div>, { title: media.title, og: {
 		image: [{ url: `/media/${params.id}/cover`}]
 	} });
