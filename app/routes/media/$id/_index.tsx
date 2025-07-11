@@ -1,6 +1,6 @@
 import { RouteContext } from "htmx-router";
 
-import { MediaSimilarity } from "./similar.tsx";
+import { MediaSimilarity } from "./similar/_index.tsx";
 import { prisma } from "~/db.server.ts";
 import { shell } from "~/routes/$.tsx";
 

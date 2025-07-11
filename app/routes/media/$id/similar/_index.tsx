@@ -1,20 +1,41 @@
-import { FillMediaAffinity, UpdateMediaAffinity, GetSimilarMedia } from "@prisma/sql.ts";
+import { GetSimilarMedia } from "@prisma/sql.ts";
 import { RouteContext } from "htmx-router";
 import { Style } from "htmx-router/css";
 
 import { MediaCard } from "~/component/media.tsx";
 
 import { SafeQueryInteger } from "~/util/math.ts";
+import { ShouldCompute } from "./compute.tsx";
 import { prisma } from "~/db.server.ts";
 
 export const parameters = { id: Number };
-export async function loader({ params, url }: RouteContext<typeof parameters>) {
+export async function loader({ params, url, headers }: RouteContext<typeof parameters>) {
 	const offset = SafeQueryInteger(url.searchParams, "o", 0);
-	let prev = SafeQueryInteger(url.searchParams, "p", 100);
+	const prev = SafeQueryInteger(url.searchParams, "p", 100);
 
-	if (offset === 0) await Init(params.id);
+	if (offset !== 0) return await Results(params.id, offset, prev);
 
-	const similar = await prisma.$queryRawTyped(GetSimilarMedia(params.id, offset, 100));
+	const compute = await ShouldCompute(params.id);
+	if (compute) {
+		headers.set("Cache-Control", "no-cache, no-store");
+		return compute;
+	}
+
+	return await Results(params.id, 0, 100);
+}
+
+
+
+export function MediaSimilarity(props: { mediaID: number }) {
+	return <div className={similarityStyle}>
+		<Loader href={`/media/${props.mediaID}/similar`} />
+	</div>
+}
+
+
+
+async function Results(mediaID: number, offset: number, prev: number) {
+	const similar = await prisma.$queryRawTyped(GetSimilarMedia(mediaID, offset, 100));
 
 	const jsx = new Array<JSX.Element>();
 	for (const media of similar) {
@@ -31,20 +52,16 @@ export async function loader({ params, url }: RouteContext<typeof parameters>) {
 	}
 
 	if (similar.length !== 0) jsx.push(
-		<Loader href={`/media/${params.id}/similar?o=${offset+similar.length}&p=${prev}`} />
+		<Loader href={`/media/${mediaID}/similar?o=${offset+similar.length}&p=${prev}`} />
 	);
 
 	return jsx;
 }
 
 
-export function MediaSimilarity(props: { mediaID: number }) {
-	return <div className={similarityStyle}>
-		<Loader href={`/media/${props.mediaID}/similar`} />
-	</div>
-}
 
-function Loader(props: { href: string }) {
+
+export function Loader(props: { href: string }) {
 	return <div className="contents" hx-target="this" hx-swap="outerHTML">
 		<div
 			className="skeleton"
@@ -53,32 +70,6 @@ function Loader(props: { href: string }) {
 		></div>
 		{SimilaritySkeleton}
 	</div>
-}
-
-
-async function Init(mediaID: number) {
-	console.log("counting");
-	let stale = await CountStale(mediaID);
-	if (stale == 0) {
-		console.time("inserting");
-		await prisma.$queryRawTyped(FillMediaAffinity(mediaID));
-		console.timeEnd("inserting");
-		stale = await CountStale(mediaID);
-		console.log(stale, "new");
-	} else console.log(stale, "stale");
-
-	if (stale < 1) return;
-
-	await prisma.$queryRawTyped(UpdateMediaAffinity(mediaID));
-}
-
-function CountStale(mediaID: number) {
-	return prisma.mediaAffinity.count({
-		where: {
-			OR: [{ aID: mediaID }, { bID: mediaID }],
-			stale: true
-		}
-	})
 }
 
 
