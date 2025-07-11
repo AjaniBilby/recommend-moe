@@ -7,7 +7,7 @@ export function MediaCard(props: {
 }) {
 	const { media } = props;
 
-	return <Link href={`/media/${media.id}`} className={`${style.name} on-hover on-hover-scale`}
+	return <Link href={`/media/${media.id}`} className={`${style.name} on-hover on-hover-scale request-indicator`}
 		style={{ position: "relative", viewTransitionName: `media-${media.id}` }}
 	>
 		<div className="cover" style={{

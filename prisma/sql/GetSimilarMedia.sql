@@ -14,7 +14,7 @@ FROM (
 	WHERE "bID" = $1::int
 ) a
 INNER JOIN "Media" m ON m."id" = a."mediaID"
-WHERE not a."stale" and a."overlap" > 10
+WHERE not a."stale" and a."overlap" > 100
 ORDER BY a."score" desc
 LIMIT $3::int
 OFFSET $2::int

@@ -35,6 +35,7 @@ a.htmx-request:not(:has(> button:first-child)) {
 	a.htmx-request > button, button.htmx-request
 {
 	cursor: progress;
+	opacity: 1 !important; /* override the link rquest */
 
 	border-width: 1px;
 	border-style: solid;

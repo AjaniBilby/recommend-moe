@@ -1,4 +1,4 @@
-import { FillMediaAffinity, UpdateMediaStaleAffinity, GetSimilarMedia } from "@prisma/sql.ts";
+import { FillMediaAffinity, UpdateMediaAffinity, GetSimilarMedia } from "@prisma/sql.ts";
 import { RouteContext } from "htmx-router";
 import { Style } from "htmx-router/css";
 
@@ -57,18 +57,18 @@ function Loader(props: { href: string }) {
 
 
 async function Init(mediaID: number) {
+	console.log("counting");
 	let stale = await CountStale(mediaID);
 	if (stale == 0) {
+		console.log("inserting");
 		await prisma.$queryRawTyped(FillMediaAffinity(mediaID));
 		stale = await CountStale(mediaID);
 		console.log(stale, "new");
 	} else console.log(stale, "stale");
 
-
-	stale = await CountStale(mediaID);
 	if (stale < 1) return;
 
-	await prisma.$queryRawTyped(UpdateMediaStaleAffinity(mediaID));
+	await prisma.$queryRawTyped(UpdateMediaAffinity(mediaID));
 }
 
 function CountStale(mediaID: number) {
