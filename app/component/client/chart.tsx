@@ -130,7 +130,7 @@ export function Chart(props: {
 		};
 	}, []);
 
-	return <div style={{ display: "block", backgroundColor: "white", borderRadius: "var(--radius)", flexGrow: 1 }}>
+	return <div style={{ display: "block", backgroundColor: "white", borderRadius: "var(--radius)" }}>
 		<canvas ref={chartRef} style={props.style}></canvas>
 	</div>;
 }

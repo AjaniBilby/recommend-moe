@@ -48,7 +48,7 @@ export async function loader({ params }: RouteContext<typeof parameters>) {
 					},
 					interaction: { intersect: false, mode: 'index' }
 				}}
-				style={{ width: "100%", height: "100px", flexGrow: 1 }}
+				style={{ width: "500px", height: "100px" }}
 			/>
 		</div>
 

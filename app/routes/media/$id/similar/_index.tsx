@@ -65,6 +65,9 @@ export const similarityStyle = new Style("similarity", `
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
 	gap: 10px;
+
+	margin-inline: 15px;
+	overflow-x: visible;
 }
 
 .this .line {
@@ -76,6 +79,8 @@ export const similarityStyle = new Style("similarity", `
 	position: sticky;
 	top: 0;
 	z-index: 2;
+
+	margin-inline: -15px;
 }
 .this .line .percent {
 	background-color: hsl(var(--background));

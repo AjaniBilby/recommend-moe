@@ -9,19 +9,22 @@ import { MediaLoader } from "~/component/media.tsx";
 import { prisma } from "~/db.server.ts";
 
 export const parameters = { id: Number };
-export function action({ request, params, headers }: RouteContext<typeof parameters>) {
+export function action({ request, url, params, headers }: RouteContext<typeof parameters>) {
 	headers.set("Cache-Control", "no-cache, no-store");
 
-	return MakeStream(request, { render: renderToString, mediaID: params.id, highWaterMark: 1000 }, Compute);
+	const infill = url.searchParams.get("infill") === "on";
+
+	return MakeStream(request, { render: renderToString, mediaID: params.id, infill, highWaterMark: 1000 }, Compute);
 }
 
 
 export async function ShouldCompute(mediaID: number) {
-	if (await IsComplete(mediaID)) return null;
+	const complete = await IsComplete(mediaID);
+	if (complete && await CountStale(mediaID) === 0) return null;
 
 	return <div
 		style={{ gridColumn: "1/-1"}}
-		hx-put={`/media/${mediaID}/similar/compute`}
+		hx-put={`/media/${mediaID}/similar/compute?infill=${complete ? "off" : "on"}`}
 		hx-ext="hx-stream"
 		hx-swap="innerHTML"
 		hx-stream="on"
@@ -42,19 +45,16 @@ async function IsComplete(mediaID: number) {
 }
 
 
-async function Compute(stream: StreamResponse<true>, props: { mediaID: number }) {
+async function Compute(stream: StreamResponse<true>, props: { mediaID: number, infill: boolean }) {
 	const mediaID = props.mediaID;
 
-	if (!await IsComplete(mediaID)) {
+	if (props.infill) {
 		stream.send("this", "innerHTML", <ComputeMessage>Checking for missing entries...</ComputeMessage>);
 		await prisma.$queryRawTyped(FillMediaAffinity(mediaID));
 	}
 
+	const total = await prisma.media.count() - 1;
 	let stale = await CountStale(mediaID);
-
-	const total = await prisma.mediaAffinity.count({
-		where: { OR: [{ aID: mediaID }, { bID: mediaID }] }
-	});
 
 	while (stale > 0) {
 		if (stream.readyState === StreamResponse.CLOSED) return;

@@ -1,44 +1,6 @@
-import { FormStreamEmptyField, FormStream } from "~/util/form.ts";
+import { FormStream } from "~/util/form.ts";
 import { ShapeArray } from "~/util/format/object.ts";
-import { LazyValue } from "~/util/schedule.ts";
 
-/**
- * Parses a ReadableStream of strings into CSV rows.
- *
- * This async generator function correctly handles CSVs with quoted fields
- * that may contain newlines and escaped quotes (`""`). It processes the
- * stream chunk by chunk, maintaining state across chunks to ensure that
- * rows are parsed correctly regardless of where chunks begin or end.
- *
- * @param stream A ReadableStream<string> containing the CSV data.
- * @returns An AsyncGenerator that yields each parsed CSV row as an array of strings.
- *
- * @example
- * ```ts
- * const csvData = 'header1,header2,header3\n' +
- *   'a,b,c\n' +
- *   'd,"e\nwith newline",f\n' +
- *   'g,h,"i with ""escaped"" quotes"';
- *
- * const stream = ReadableStream.from((async function* () {
- *   // Simulate a stream by yielding chunks
- *   yield csvData.substring(0, 25);
- *   yield csvData.substring(25);
- * })());
- *
- * (async () => {
- *   for await (const row of parseCsvStream(stream)) {
- *     console.log(row);
- *   }
- * })();
- *
- * // Expected Output:
- * // [ 'header1', 'header2', 'header3' ]
- * // [ 'a', 'b', 'c' ]
- * // [ 'd', 'e\nwith newline', 'f' ]
- * // [ 'g', 'h', 'i with "escaped" quotes' ]
- * ```
- */
 const decoder = new TextDecoder();
 export async function* CsvStream(stream: AsyncGenerator<Uint8Array>): AsyncGenerator<string[]> {
 	let inQuote = false;
@@ -120,8 +82,6 @@ export function CsvFormStream<T extends string[]>(request: Request, format: T) {
 
 		for await (const field of FormStream(request)) {
 			if (done) continue;
-
-			console.log(field);
 
 			if (!field.disposition.filename) continue;
 			if (field.headers.get("content-type") !== "text/csv") continue;

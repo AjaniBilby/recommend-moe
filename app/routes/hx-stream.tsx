@@ -8,8 +8,6 @@ import { Timeout } from "~/util/schedule.ts";
 import { prisma } from "~/db.server.ts";
 
 export async function loader() {
-	console.log(await prisma.user.findMany());
-
 	return shell(<div hx-ext="hx-stream">
 		<form method="POST" encType="multipart/form-data" hx-target="#results" hx-swap="innerHTML" hx-stream="on">
 			<button type="submit">submit</button>
