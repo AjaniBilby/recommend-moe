@@ -42,7 +42,9 @@ async function Compute(stream: StreamResponse<true>, props: { mediaID: number })
 		stale = await CountStale(mediaID);
 	}
 
-	const total = stale;
+	const total = await prisma.mediaAffinity.count({
+		where: { OR: [{ aID: mediaID }, { bID: mediaID }] }
+	});
 
 	while (stale > 0) {
 		if (stream.readyState === StreamResponse.CLOSED) return;

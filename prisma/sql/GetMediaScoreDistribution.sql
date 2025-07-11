@@ -1,7 +1,7 @@
 -- @param $1:mediaID
 SELECT
 	bucket,
-	COUNT(*) as frequency,
+	COUNT(*)::integer as frequency,
 	((bucket - 1) * 10)::text || '% - ' || (bucket * 10)::text || '%' as bucket_name
 FROM (
 	SELECT

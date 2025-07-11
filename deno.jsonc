@@ -32,6 +32,11 @@
 		"@prisma/": "./build/prisma/",
 		"~/": "./app/",
 
+
+		"chart.js": "npm:@chart.js^4.4.9",
+		"chartjs-adapter-date-fns": "npm:@chartjs-adapter-date-fns^3.0.0",
+		"chartjs-plugin-trendline": "npm:@chartjs-plugin-trendline^2.1.9",
+
 		"@deno/vite-plugin": "npm:@deno/vite-plugin@^1.0.4",
 		"@std/http": "jsr:@std/http@^1.0.4",
 		"@std/io": "jsr:@std/io",

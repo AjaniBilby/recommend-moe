@@ -1,7 +1,9 @@
 import type { ClientIslandManifest } from "htmx-router";
 
-const Client = {};
+import { Chart } from "~/component/client/chart.tsx";
 
-console.log("hi");
+const Client = {
+	Chart
+};
 
 export default Client as ClientIslandManifest<typeof Client>;
