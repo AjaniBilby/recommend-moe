@@ -10,11 +10,22 @@ model Media {
 	kind MediaKind
 	icon String
 
+	scoreRank   Int?
+	score     Float?
+	@@index([score(sort: Desc), id])
+
+	popularRank Int?
+	popularity  Int?
+	@@index([popularity(sort: Desc), id])
+
+	staleStats Boolean @default(true)
+	@@index([staleStats, id])
+
 	userScores UserMediaScore[]
 	referred   ExternalMedia[]
 
 	affinitiesAsA MediaAffinity[] @relation("MediaAffinityA")
-  affinitiesAsB MediaAffinity[] @relation("MediaAffinityB")
+	affinitiesAsB MediaAffinity[] @relation("MediaAffinityB")
 }
 
 

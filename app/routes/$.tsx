@@ -1,10 +1,9 @@
 import { ApplyMetaDefaults, ShellOptions } from "htmx-router/shell";
 import { RouteContext } from "htmx-router";
 
-import { LazyLoad, Link } from "~/component/link.tsx";
 import { DialogResponse } from "~/component/server/dialog.tsx";
 import { Scripts } from "~/component/server/scripts.tsx";
-// import { Navbar } from "~/component/server/navbar";
+import { Link } from "~/component/link.tsx";
 import { Head } from "~/component/server/head.tsx";
 
 import mainsheetUrl from "~/styles/main.css?url";
@@ -39,6 +38,14 @@ const headers = <>
 const header = <div id="header" hx-preserve="true">
 	{/* <LazyLoad href="/user/me/navbar/masked">&nbsp;</LazyLoad> */}
 	{/* <Navbar /> */}
+	<div style={{ display: "flex", gap: "10px", marginBlock: "1em" }}>
+		<Link href="/search">
+			<button type="button" className="secondary">Search</button>
+		</Link>
+		<Link href="/rank">
+			<button type="button" className="secondary">Rank</button>
+		</Link>
+	</div>
 </div>;
 
 

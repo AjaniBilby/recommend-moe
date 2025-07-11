@@ -1,9 +1,11 @@
+import { ReactNode } from "react";
 import { Style } from "htmx-router/css";
 
 import { Link } from "~/component/link.tsx";
 
 export function MediaCard(props: {
-	media: { id: number, title: string, icon: string }
+	media: { id: number, title: string, icon: string },
+	children?: ReactNode
 }) {
 	const { media } = props;
 
@@ -16,6 +18,7 @@ export function MediaCard(props: {
 				: `url(/media/${media.id}/cover)`
 		}}></div>
 		<div className="title on-hover-show text-center card">{media.title}</div>
+		{props.children}
 	</Link>
 }
 
@@ -42,4 +45,27 @@ const style = new Style("media", `
 	background-color: hsl(var(--background));
 	font-size: .75em;
 }
+
+.this.skeleton {
+	display: block;
+	aspect-ratio: 2/3;
+	height: unset !important;
+}
 `);
+
+
+
+
+const skeleton = `<div class="${style.name} skeleton"></div>`.repeat(5);
+const SimilaritySkeleton = <div className="contents" dangerouslySetInnerHTML={{ __html: skeleton }}></div>;
+
+export function MediaLoader(props: { href: string }) {
+	return <div className="contents" hx-target="this" hx-swap="outerHTML">
+		<div
+			className={style.name + " skeleton"}
+			hx-get={props.href}
+			hx-trigger="intersect once"
+		></div>
+		{SimilaritySkeleton}
+	</div>
+}

@@ -13,7 +13,7 @@ nav.breadcrumb {
 .text-center { text-align: center; }
 .text-left   { text-align: left;   }
 .text-bold   { font-weight: bold;  }
-.text-mono   { font-family: Geist-Mono; }
+.text-mono   { font-family: "Geist Mono", monospace; }
 
 
 .focus-grow {

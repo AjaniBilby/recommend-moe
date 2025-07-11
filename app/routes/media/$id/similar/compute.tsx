@@ -4,7 +4,8 @@ import { renderToString } from "react-dom/server";
 import { RouteContext } from "htmx-router";
 import { ReactNode } from "react";
 
-import { Loader } from "./_index.tsx";
+import { MediaLoader } from "~/component/media.tsx";
+
 import { prisma } from "~/db.server.ts";
 
 export const parameters = { id: Number };
@@ -54,7 +55,7 @@ async function Compute(stream: StreamResponse<true>, props: { mediaID: number })
 		stale = await CountStale(mediaID);
 	}
 
-	stream.send("this", "outerHTML", <Loader href={`/media/${mediaID}/similar`} />);
+	stream.send("this", "outerHTML", <MediaLoader href={`/media/${mediaID}/similar`} />);
 	stream.close();
 }
 

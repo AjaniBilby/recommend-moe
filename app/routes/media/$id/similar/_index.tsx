@@ -2,7 +2,7 @@ import { GetSimilarMedia } from "@prisma/sql.ts";
 import { RouteContext } from "htmx-router";
 import { Style } from "htmx-router/css";
 
-import { MediaCard } from "~/component/media.tsx";
+import { MediaCard, MediaLoader } from "~/component/media.tsx";
 
 import { SafeQueryInteger } from "~/util/math.ts";
 import { ShouldCompute } from "./compute.tsx";
@@ -28,7 +28,7 @@ export async function loader({ params, url, headers }: RouteContext<typeof param
 
 export function MediaSimilarity(props: { mediaID: number }) {
 	return <div className={similarityStyle}>
-		<Loader href={`/media/${props.mediaID}/similar`} />
+		<MediaLoader href={`/media/${props.mediaID}/similar`} />
 	</div>
 }
 
@@ -52,7 +52,7 @@ async function Results(mediaID: number, offset: number, prev: number) {
 	}
 
 	if (similar.length !== 0) jsx.push(
-		<Loader href={`/media/${mediaID}/similar?o=${offset+similar.length}&p=${prev}`} />
+		<MediaLoader href={`/media/${mediaID}/similar?o=${offset+similar.length}&p=${prev}`} />
 	);
 
 	return jsx;
@@ -60,21 +60,7 @@ async function Results(mediaID: number, offset: number, prev: number) {
 
 
 
-
-export function Loader(props: { href: string }) {
-	return <div className="contents" hx-target="this" hx-swap="outerHTML">
-		<div
-			className="skeleton"
-			hx-get={props.href}
-			hx-trigger="intersect once"
-		></div>
-		{SimilaritySkeleton}
-	</div>
-}
-
-
-
-const similarityStyle = new Style("similarity", `
+export const similarityStyle = new Style("similarity", `
 .this {
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -102,13 +88,4 @@ const similarityStyle = new Style("similarity", `
 	margin-top: -4px;
 	flex-grow: 1;
 }
-
-.this .skeleton {
-	display: block;
-	aspect-ratio: 2/3;
-	height: unset !important;
-}
 `).name;
-
-const skeleton = `<div class="skeleton"></div>`.repeat(5);
-const SimilaritySkeleton = <div className="contents" dangerouslySetInnerHTML={{ __html: skeleton }}></div>;
