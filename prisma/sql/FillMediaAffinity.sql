@@ -1,10 +1,10 @@
 -- @param {Int} $1:mediaID
 INSERT INTO "MediaAffinity" ("aID", "bID")
-SELECT LEAST($1, m."id"), GREATEST($1, m."id")
+SELECT LEAST($1, m."id"), GREATEST(12271, m."id")
 FROM "Media" m
-LEFT JOIN "MediaAffinity" a ON (
-	(m."id" < $1 AND a."aID" = m."id" AND a."bID" = $1) OR
-	(m."id" > $1 AND a."aID" = $1 AND a."bID" = m."id")
+WHERE m."id" != $1 and NOT EXISTS(
+	SELECT 1
+	FROM "MediaAffinity" a
+	WHERE a."aID" = LEAST($1, m."id") and a."bID" = GREATEST($1, m."id")
 )
-WHERE m."id" != $1 AND a."aID" IS NULL
 ON CONFLICT DO NOTHING

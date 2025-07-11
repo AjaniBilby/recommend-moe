@@ -60,8 +60,9 @@ async function Init(mediaID: number) {
 	console.log("counting");
 	let stale = await CountStale(mediaID);
 	if (stale == 0) {
-		console.log("inserting");
+		console.time("inserting");
 		await prisma.$queryRawTyped(FillMediaAffinity(mediaID));
+		console.timeEnd("inserting");
 		stale = await CountStale(mediaID);
 		console.log(stale, "new");
 	} else console.log(stale, "stale");
