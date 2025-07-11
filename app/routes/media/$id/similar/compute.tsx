@@ -17,8 +17,7 @@ export function action({ request, params, headers }: RouteContext<typeof paramet
 
 
 export async function ShouldCompute(mediaID: number) {
-	const stale = await CountStale(mediaID);
-	if (stale < 1) return null;
+	if (await IsComplete(mediaID)) return null;
 
 	return <div
 		style={{ gridColumn: "1/-1"}}
@@ -32,16 +31,26 @@ export async function ShouldCompute(mediaID: number) {
 	</div>
 }
 
+async function IsComplete(mediaID: number) {
+	const current = await prisma.mediaAffinity.count({
+		where: { OR: [{ aID: mediaID }, { bID: mediaID }] }
+	});
+
+	const shows = await prisma.media.count() - 1;
+
+	return current >= shows;
+}
+
 
 async function Compute(stream: StreamResponse<true>, props: { mediaID: number }) {
 	const mediaID = props.mediaID;
-	let stale = await CountStale(mediaID);
 
-	if (stale === 0) {
+	if (!await IsComplete(mediaID)) {
 		stream.send("this", "innerHTML", <ComputeMessage>Checking for missing entries...</ComputeMessage>);
 		await prisma.$queryRawTyped(FillMediaAffinity(mediaID));
-		stale = await CountStale(mediaID);
 	}
+
+	let stale = await CountStale(mediaID);
 
 	const total = await prisma.mediaAffinity.count({
 		where: { OR: [{ aID: mediaID }, { bID: mediaID }] }
