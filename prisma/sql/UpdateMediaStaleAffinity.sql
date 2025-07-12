@@ -2,6 +2,7 @@ WITH "stale" AS (
 	SELECT "aID", "bID"
 	FROM "MediaAffinity"
 	WHERE "stale" = true
+	LIMIT 100
 ), "updates" AS (
 	SELECT s."aID", s."bID", c.score, c.overlap
 	FROM "stale" s
