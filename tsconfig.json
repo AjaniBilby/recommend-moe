@@ -30,7 +30,7 @@
 		"forceConsistentCasingInFileNames": true,
 		"baseUrl": ".",
 		"paths": {
-			"@prisma/*": ["./build/prisma/*"],
+			"db/*": ["./build/prisma/*"],
 			"~/*": ["./app/*"]
 		},
 

@@ -7,7 +7,7 @@ datasource db {
 generator client {
 	provider = "prisma-client"
 	output = "../build/prisma"
-	previewFeatures = ["fullTextSearchPostgres", "relationJoins", "postgresqlExtensions", "typedSql", "postgresqlExtensions"]
+	previewFeatures = ["queryCompiler", "driverAdapters", "fullTextSearchPostgres", "relationJoins", "postgresqlExtensions", "typedSql", "postgresqlExtensions"]
 	runtime = "deno"
 }
 

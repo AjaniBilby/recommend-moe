@@ -79,7 +79,6 @@ async function* FormStream(a: Request | Reader, b?: string): AsyncGenerator<Form
 		while (true) { // drain any remaining values
 			const res = await stream.next();
 			if (res.done) break;
-			console.log('drain');
 		}
 
 

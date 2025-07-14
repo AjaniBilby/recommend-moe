@@ -1,6 +1,5 @@
-
-import { UpdateMediaStaleAffinity } from "@prisma/sql.ts";
 import { MakeStream, StreamResponse } from "hx-stream/dist/server";
+import { UpdateMediaStaleAffinity } from "db/sql.ts";
 import { renderToString } from "react-dom/server";
 import { RouteContext } from "htmx-router";
 import { ReactNode } from "react";

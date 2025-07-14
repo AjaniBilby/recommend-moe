@@ -24,6 +24,7 @@ export async function loader({ url }: RouteContext) {
 
 	const jsx = new Array<JSX.Element>();
 	for (const m of media) {
+		if (!m.score) continue;
 		m.score *= 100;
 		const score = Math.floor(m.score);
 

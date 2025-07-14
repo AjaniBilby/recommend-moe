@@ -1,7 +1,7 @@
 import { ApplyMetaDefaults, ShellOptions } from "htmx-router/shell";
 import { Style } from "htmx-router/css";
 
-import { Link } from "../../component/link.tsx";
+import { Link } from "~/component/link.tsx";
 
 import { shell as inherit } from "../$.tsx";
 
@@ -17,6 +17,9 @@ export function shell(inner: JSX.Element, options: ShellOptions<{ headless?: boo
 			</Link>
 			<Link href="/rank/popularity">
 				<button type="button" className="secondary">Popularity</button>
+			</Link>
+			<Link href="/rank/novelty">
+				<button type="button" className="secondary">Novelty</button>
 			</Link>
 		</div>
 

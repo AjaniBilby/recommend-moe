@@ -30,3 +30,17 @@ export function LazyLoad(props: {
 		hx-swap="outerHTML transition:true"
 	>{children === undefined ? <RunningSpinner /> : children}</div>
 }
+
+export function Open(props: { href: string, newWindow?: boolean } & JSX.IntrinsicElements["div"]) {
+	const { href, style, ...restProps } = props;
+
+	return <div
+		hx-get={href}
+		hx-target="body"
+		hx-swap="beforeend"
+		hx-push-url="false"
+		style={{ color: "unset", textDecoration: "inherit", cursor: "pointer", ...style }}
+		tabIndex={restProps.tabIndex || 0}
+		{...restProps}
+	></div>;
+}

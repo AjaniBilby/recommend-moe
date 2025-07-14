@@ -1,7 +1,8 @@
-import { GetMediaScoreDistribution } from "@prisma/sql.ts";
+import { GetMediaScoreHistogram } from "db/sql.ts";
 import { RouteContext } from "htmx-router";
 
 import Client from "~/manifest.tsx";
+import { Open } from "~/component/link.tsx";
 
 import { MediaSimilarity } from "./similar/_index.tsx";
 import { prisma } from "~/db.server.ts";
@@ -14,7 +15,7 @@ export async function loader({ params }: RouteContext<typeof parameters>) {
 	});
 	if (!media) return null;
 
-	const histogram = await prisma.$queryRawTyped(GetMediaScoreDistribution(params.id));
+	const histogram = await prisma.$queryRawTyped(GetMediaScoreHistogram(params.id));
 
 	return shell(<div>
 		<h1>{media.title}</h1>
@@ -32,7 +33,7 @@ export async function loader({ params }: RouteContext<typeof parameters>) {
 			<Client.Chart
 				type="bar"
 				data={{
-					labels:   histogram.map(x => x.bucket_name),
+					labels: histogram.map(x => x.bucket),
 					datasets: [{
 						data: histogram.map(x => x.frequency)
 					}]
@@ -53,7 +54,9 @@ export async function loader({ params }: RouteContext<typeof parameters>) {
 		</div>
 
 
-		<h3>Similar</h3>
+		<Open href={`/media/${params.id}/similar/chart`}>
+			<h3>Similar</h3>
+		</Open>
 		<MediaSimilarity mediaID={params.id} />
 	</div>, { title: media.title, og: {
 		image: [{ url: `/media/${params.id}/cover`}]

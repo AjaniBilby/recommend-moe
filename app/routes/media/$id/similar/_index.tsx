@@ -1,4 +1,4 @@
-import { GetSimilarMedia } from "@prisma/sql.ts";
+import { GetSimilarMedia } from "db/sql.ts";
 import { RouteContext } from "htmx-router";
 import { Style } from "htmx-router/css";
 
@@ -39,7 +39,7 @@ async function Results(mediaID: number, offset: number, prev: number) {
 
 	const jsx = new Array<JSX.Element>();
 	for (const media of similar) {
-		const score = Math.floor(media.score*100);
+		const score = Math.floor((media.score || 0)*100);
 		if (score !== prev) {
 			jsx.push(<div className="line">
 				<div className="percent">{score}%</div>

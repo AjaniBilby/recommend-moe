@@ -27,6 +27,7 @@ export async function loader({ url }: RouteContext) {
 
 	const jsx = new Array<JSX.Element>();
 	for (const m of media) {
+		if (!m.popularity) continue;
 		let group = Math.floor(m.popularity / 1000);
 		if (group > 25) group = Math.floor(group / 5) * 5;
 

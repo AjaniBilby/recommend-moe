@@ -18,6 +18,9 @@ model Media {
 	popularity  Int?
 	@@index([popularity(sort: Desc), id])
 
+	novelty Float?
+	@@index([novelty(sort: Desc), id])
+
 	staleStats Boolean @default(true)
 	@@index([staleStats, id])
 
