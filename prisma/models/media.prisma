@@ -29,6 +29,8 @@ model Media {
 
 	affinitiesAsA MediaAffinity[] @relation("MediaAffinityA")
 	affinitiesAsB MediaAffinity[] @relation("MediaAffinityB")
+
+	calculation MediaRanking? @ignore
 }
 
 
@@ -67,4 +69,22 @@ model MediaAffinity {
 
 	stale Boolean @default(true)
 	@@index([stale, aID, bID]) // allow index only reads
+}
+
+
+model MediaRanking {
+	media Media @relation(fields: [id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+	id    Int   @id
+
+	width  Float
+	weight Float @default(1.0)
+	next   Float?
+
+	@@index([id, weight, width]) // covering index
+
+	outstanding Boolean @default(dbgenerated("(\"next\" IS NULL)"))
+	@@index([outstanding, id])
+
+	@@index([iteration, outstanding]) // for monitoring progress
+	iteration Int @default(0)
 }

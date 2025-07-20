@@ -32,9 +32,9 @@ model UserMediaScore {
 
 	media   Media @relation(fields: [mediaID], references: [id], onUpdate: Cascade, onDelete: Cascade)
 	mediaID Int
+	@@unique([userID, mediaID]) // only used to prevent duplicates
 
 	@@index([mediaID, userID, score]) // covering index
-	@@unique([userID, mediaID])       // not needed for user:user since low overlap
 
 	affinity Float? /// scale 0-1 (predicted score)
 	score    Float? /// scale 0-1
@@ -47,10 +47,11 @@ model UserAffinity {
 	aID Int /// aID < bID
 	b   User @relation("UserAffinityB",fields: [bID], references: [id], onUpdate: Cascade, onDelete: Cascade)
 	bID Int /// aID < bID
-
 	@@unique([aID, bID])
+
 	@@index([aID, score(sort: Desc)])
 	@@index([bID, score(sort: Desc)])
+	@@index([aID, bID, score]) // covering index
 
 	score     Float @default(0)
 	overlap   Int   @default(0)
