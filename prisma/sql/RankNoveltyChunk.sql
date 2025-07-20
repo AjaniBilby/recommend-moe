@@ -1,26 +1,18 @@
-WITH "updates" AS (
-	m."id", (
-		SELECT SUM("weight") / SUM("popularity")
-		FROM (
-			SELECT r."weight" * a."score" / r."width" as "weight", r."width"
-			FROM "MediaAffinity" a
-			INNER JOIN "MediaRanking" r ON a."bID" = r."id"
-			WHERE a."aID" = m."id" and "overlap" > 100 -- scored both media
+-- @param $1:mediaID
+UPDATE "MediaRanking"
+SET "next" = (
+	SELECT SUM(a."score" * r."weight" / r."width")
+	FROM (
+		SELECT "bID" as "id", "score"
+		FROM "MediaAffinity"
+		WHERE "bID" = $1::int and "overlap" > 100
 
-			UNION ALL
+		UNION ALL
 
-			SELECT r."weight" * a."score" / r."width", r."width"
-			FROM "MediaAffinity" a
-			INNER JOIN "MediaRanking" r ON a."aID" = r."id"
-			WHERE a."bID" = m."id" and "overlap" > 100
-		)
-	) as "next"
-	FROM "MediaRanking" m
-	WHERE "outstanding"
-	LIMIT 100
+		SELECT "aID", "score"
+		FROM "MediaAffinity"
+		WHERE "aID" = $1::int and "overlap" > 100
+	) a
+	INNER JOIN "MediaRanking" r ON r."id" = a."id"
 )
-
-UPDATE "MediaRanking" m
-SET "next" = u."next"
-FROM "updates" u
-WHERE u."id" = m."id";
+WHERE "id" = $1::int;

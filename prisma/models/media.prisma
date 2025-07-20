@@ -63,6 +63,8 @@ model MediaAffinity {
 	@@index([aID, score(sort: Desc)])
 	@@index([bID, score(sort: Desc)])
 
+	@@index([aID, bID, overlap(sort: Desc)])
+
 	score     Float @default(0)
 	overlap   Int   @default(0)
 	updatedAt DateTime @default(now()) @updatedAt
@@ -82,7 +84,7 @@ model MediaRanking {
 
 	@@index([id, weight, width]) // covering index
 
-	outstanding Boolean @default(dbgenerated("(\"next\" IS NULL)"))
+	outstanding Boolean @default(dbgenerated("(next IS NULL)"))
 	@@index([outstanding, id])
 
 	@@index([iteration, outstanding]) // for monitoring progress
