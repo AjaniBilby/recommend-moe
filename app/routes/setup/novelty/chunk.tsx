@@ -32,18 +32,17 @@ export function action({ request, headers }: RouteContext) {
 }
 
 
-const scale = 1/1000;
 async function Compute(stream: StreamResponse<true>) {
-
 	let stats = await GetStats();
 	const batchSize = 20;
 
-	while (stats.range < 0.01) {
+	while (stats.iteration < 5) {
 		const media = await prisma.mediaRanking.findMany({
 			select: { id: true },
 			where:  { next: null }
 		});
 
+		console.time("batch");
 		for (let i=0; i<media.length; i+=batchSize) {
 			const queue = [];
 			const limit = Math.min(i + batchSize, media.length);
@@ -56,6 +55,10 @@ async function Compute(stream: StreamResponse<true>) {
 				{stats.iteration}: Calculating {i} of {media.length} (spread: {stats.range})
 			</ComputeMessage>);
 		}
+		console.timeEnd("batch");
+
+		const delta = await prisma.$queryRaw`SELECT SUM(ABS("next" - "weight")) FROM "MediaRanking" WHERE "next" is not null`;
+		console.log(stats.iteration, delta[0].sum);
 
 		await prisma.$queryRawTyped(RankNoveltyStep());
 		stats = await GetStats();
