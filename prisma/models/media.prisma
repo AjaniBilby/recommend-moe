@@ -60,8 +60,8 @@ model MediaAffinity {
 	bID Int /// aID < bID
 
 	@@unique([aID, bID])
-	@@index([aID, score(sort: Desc)])
-	@@index([bID, score(sort: Desc)])
+	@@index([aID, score(sort: Desc), overlap])
+	@@index([bID, score(sort: Desc), overlap])
 
 	@@index([aID, bID, overlap(sort: Desc)])
 
