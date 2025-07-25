@@ -29,7 +29,7 @@
 		"types": ["react", "react-dom", "@types/react", "./types.d.ts"]
 	},
 	"imports": {
-		"db/": "./build/prisma/",
+		"@db/": "./build/prisma/",
 		"~/": "./app/",
 
 

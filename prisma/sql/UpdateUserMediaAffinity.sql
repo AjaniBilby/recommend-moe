@@ -1,14 +1,19 @@
-EXPLAIN ANALYZE
--- ), "updates" AS (
-	SELECT s."mediaID", SUM(s."score" * a."score") / SUM(a."score") as "affinity"
-	FROM "UserMediaScore" s
-	INNER JOIN "UserAffinity" a ON a."aID" = LEAST(138998, s."userID") and a."bID" = GREATEST(138998, s."userID")
-	WHERE s."mediaID" IN (SELECT "mediaID" FROM "UserMediaScore" WHERE "userID" = 138998 and "affinity" is null )
-	GROUP BY s."mediaID"
-	HAVING COUNT(*) > 10
--- )
+-- @param $1:userID
+-- @param $2:mediaID
+WITH "affinity" AS (
+	SELECT "bID" as "userID", "score" FROM "UserAffinity" WHERE "aID" = $1 and "score" is not null
+	UNION ALL
+	SELECT "aID", "score" FROM "UserAffinity" WHERE "bID" = $1 and "score" is not null
+), "update" AS (
+	SELECT $2::int, $1::int, SUM(m."score" * a."score") / SUM(a."score")
+	FROM "UserMediaScore" m
+	INNER JOIN "affinity" a ON a."userID" = m."userID"
+	WHERE "mediaID" = $2::int
+)
 
--- UPDATE "UserMediaScore" a
--- SET "affinity" = u."affinity", "updatedAt" = now()
--- FROM "updates" u
--- WHERE u."mediaID" = a."mediaID" and a."userID" = 138998;
+INSERT INTO "UserMediaScore" ("mediaID", "userID", "affinity")
+SELECT *
+FROM "update"
+ON CONFLICT ("mediaID", "userID") DO UPDATE
+	SET "affinity" = EXCLUDED."affinity"
+RETURNING "affinity";

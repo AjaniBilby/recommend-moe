@@ -1,6 +1,6 @@
 
 import { MakeStream, StreamResponse } from "hx-stream/dist/server";
-import { FillMediaAffinity } from "db/sql.ts";
+import { FillMediaAffinity } from "@db/sql.ts";
 import { renderToString } from "react-dom/server";
 import { RouteContext } from "htmx-router";
 import { ReactNode } from "react";

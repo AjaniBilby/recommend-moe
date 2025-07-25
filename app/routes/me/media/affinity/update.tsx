@@ -1,5 +1,5 @@
 import { MakeStream, StreamResponse } from "hx-stream/dist/server";
-import { UpdateMediaNovelty } from "@db/sql.ts";
+import { RankNoveltyInit, UpdateUserMediaAffinity } from "@db/sql.ts";
 import { renderToString } from "react-dom/server";
 import { RouteContext } from "htmx-router";
 import { ReactNode } from "react";
@@ -31,18 +31,48 @@ export function action({ request, headers }: RouteContext) {
 }
 
 
-
+const scale = 1/1000;
 async function Compute(stream: StreamResponse<true>) {
+	const start = Date.now();
+
 	const media = await prisma.media.findMany({
 		select:  { id: true, title: true },
-		orderBy: { id: "desc" }
+		orderBy: { id: "asc" }
 	});
 
 	for (let i=0; i<media.length; i++) {
 		if (stream.readyState === StreamResponse.CLOSED) return;
-		stream.send("this", "innerHTML", <ComputeMessage>Calculating {i} of {media.length}: {media[i].title}</ComputeMessage>);
-		await prisma.$queryRawTyped(UpdateMediaNovelty(media[i].id));
+
+		const p = i / media.length;
+		if (p > 0) {
+			const time = (Date.now() - start) / p;
+			stream.send("this", "innerHTML", <ComputeMessage>
+				<div>Calculating {i} of {media.length} (eta: {(time*scale).toFixed(2)} sec)</div>
+				<div>{media[i].title}</div>
+			</ComputeMessage>);
+		}
+		await prisma.$queryRawTyped(UpdateUserMediaAffinity(1, media[i].id))
 	}
+
+	// const total = await prisma.media.count();
+	// let i = await prisma.mediaRanking.count();
+	// while (i < total) {
+	// 	if (stream.readyState === StreamResponse.CLOSED) return;
+
+	// 	{
+	// 		const rem = total - i;
+	// 		const time = (Date.now() - start) / tally * rem;
+	// 		stream.send("this", "innerHTML", <ComputeMessage>Calculating {i} of {total} (eta: {(time*scale).toFixed(2)} sec)</ComputeMessage>);
+	// 	}
+	// 	await prisma.$queryRawTyped(RankNoveltyInit());
+
+	// 	const next = await prisma.mediaRanking.count();
+	// 	tally += next-i;
+	// 	i = next;
+	// }
+
+	// // remove any media with no connections
+	// await prisma.mediaRanking.deleteMany({ where: { width: 0 } });
 
 	stream.send("this", "outerHTML", <ComputeMessage>Done</ComputeMessage>);
 	stream.close();

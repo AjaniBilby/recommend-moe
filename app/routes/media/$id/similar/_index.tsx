@@ -1,4 +1,4 @@
-import { GetSimilarMedia } from "db/sql.ts";
+import { GetSimilarMedia } from "@db/sql.ts";
 import { RouteContext } from "htmx-router";
 import { Style } from "htmx-router/css";
 

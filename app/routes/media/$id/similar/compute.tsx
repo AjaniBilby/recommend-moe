@@ -1,4 +1,4 @@
-import { FillMediaAffinity, UpdateMediaAffinity } from "db/sql.ts";
+import { FillMediaAffinity, UpdateMediaAffinity } from "@db/sql.ts";
 import { MakeStream, StreamResponse } from "hx-stream/dist/server";
 import { renderToString } from "react-dom/server";
 import { RouteContext } from "htmx-router";

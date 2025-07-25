@@ -1,5 +1,5 @@
 import { RouteContext } from "htmx-router";
-import { RankMedia } from "db/sql.ts";
+import { RankMedia } from "@db/sql.ts";
 
 import { prisma } from "~/db.server.ts";
 

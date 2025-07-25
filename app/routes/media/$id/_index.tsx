@@ -1,4 +1,4 @@
-import { GetMediaScoreHistogram } from "db/sql.ts";
+import { GetMediaScoreHistogram } from "@db/sql.ts";
 import { RouteContext } from "htmx-router";
 
 import Client from "~/manifest.tsx";

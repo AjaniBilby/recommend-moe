@@ -1,5 +1,5 @@
 import { MakeStream, StreamResponse } from "hx-stream/dist/server";
-import { IngestUserScores } from "db/sql.ts";
+import { IngestUserScores } from "@db/sql.ts";
 import { renderToString } from "react-dom/server";
 import { RouteContext } from "htmx-router";
 

@@ -1,4 +1,4 @@
-import { RankNoveltyChunk, RankNoveltyStep, GetRankStatistics } from "db/sql.ts";
+import { RankNoveltyChunk, RankNoveltyStep, GetRankStatistics } from "@db/sql.ts";
 import { MakeStream, StreamResponse } from "hx-stream/dist/server";
 import { renderToString } from "react-dom/server";
 import { RouteContext } from "htmx-router";

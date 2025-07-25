@@ -1,5 +1,5 @@
 import invariant from "tiny-invariant";
-import { PrismaClient } from "db/client.ts";
+import { PrismaClient } from "@db/client.ts";
 import { PrismaPg } from "@prisma/adapter-pg";
 
 import { Singleton } from "~/util/singleton.ts";

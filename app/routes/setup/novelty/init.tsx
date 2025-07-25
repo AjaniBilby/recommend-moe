@@ -1,5 +1,5 @@
 import { MakeStream, StreamResponse } from "hx-stream/dist/server";
-import { RankNoveltyInit } from "db/sql.ts";
+import { RankNoveltyInit } from "@db/sql.ts";
 import { renderToString } from "react-dom/server";
 import { RouteContext } from "htmx-router";
 import { ReactNode } from "react";
