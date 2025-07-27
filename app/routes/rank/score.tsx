@@ -49,9 +49,8 @@ export async function loader({ url }: RouteContext) {
 
 	if (url.searchParams.has("o")) return jsx;
 
-	return shell(<div>
-		<h1>Score</h1>
-
-		<div className={`${rankGrid} ${similarityStyle}`}>{jsx}</div>
-	</div>, { title: `Score Rank` });
+	return shell(
+		<div className={`${rankGrid} ${similarityStyle}`}>{jsx}</div>,
+		{ title: `Score Rank`, search: { value: "!score", focus: true } }
+	);
 }

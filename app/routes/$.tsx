@@ -1,5 +1,7 @@
 import { ApplyMetaDefaults, ShellOptions } from "htmx-router/shell";
 import { RouteContext } from "htmx-router";
+import { ReactNode } from "react";
+import { Style } from "htmx-router/css";
 
 import { DialogResponse } from "~/component/server/dialog.tsx";
 import { Scripts } from "~/component/server/scripts.tsx";
@@ -8,7 +10,6 @@ import { Head } from "~/component/server/head.tsx";
 
 import mainsheetUrl from "~/styles/main.css?url";
 import { CutString } from "~/util/format/text.ts";
-
 
 const headers = <>
 	<meta charSet="utf-8" />
@@ -38,18 +39,14 @@ const headers = <>
 const header = <div id="header" hx-preserve="true">
 	{/* <LazyLoad href="/user/me/navbar/masked">&nbsp;</LazyLoad> */}
 	{/* <Navbar /> */}
-	<div style={{ display: "flex", gap: "10px", marginBlock: "1em" }}>
-		<Link href="/search">
-			<button type="button" className="secondary">Search</button>
-		</Link>
-		<Link href="/rank">
-			<button type="button" className="secondary">Rank</button>
-		</Link>
-	</div>
 </div>;
 
 
-export function shell(inner: JSX.Element, options: ShellOptions<{ headless?: boolean }>) {
+export function shell(inner: JSX.Element, options: ShellOptions<{
+	headless?: boolean,
+	search?: { value?: string, focus?: boolean },
+	nav?: ReactNode
+}>) {
 	ApplyMetaDefaults(options, { title: "Recommend.moe" });
 
 	return <html lang="en">
@@ -59,7 +56,12 @@ export function shell(inner: JSX.Element, options: ShellOptions<{ headless?: boo
 			<Scripts />
 		</Head>
 		<body className="dp-enable" hx-boost="true" hx-ext="preload,hx-keep,hx-prep">
-			{!options.headless && header}
+			{!options.headless && <div style={{ display: "flex", gap: "10px", alignItems: "center", marginBlock: "10px 5px" }}>
+				{SearchBar(options.search)}
+				{options.nav}
+				<div style={{ flexGrow: 1 }}></div>
+				{header}
+			</div>}
 			{inner}
 		</body>
 	</html>
@@ -120,3 +122,76 @@ async function ErrorBody(error: unknown, path: string) {
 		body: <h1 style={{ marginTop: 0 }}>Error</h1>
 	}
 }
+
+
+
+function SearchBar(search?: { value?: string, autoFocus?: boolean }) {
+	return <form
+		style={{ display: "flex", fontSize: "2rem", fontWeight: "bold" }}
+		action="/search"
+	>
+		<Link href="/" style={{ userSelect: "none" }}>Recommend</Link>
+		<label className="contents">
+			<div className={searchStyle.name}>
+				<input
+					name="q"
+					placeholder=" "
+					autoComplete="off"
+					autoCapitalize="off"
+					defaultValue={search?.value}
+					autoFocus={search?.autoFocus}
+				></input>
+				<div className="accent"></div>
+			</div>
+			<div style={{
+				userSelect: "none",
+				color: "rgb(250, 0, 240)"
+			}}>moe</div>
+		</label>
+	</form>
+}
+
+const searchStyle = new Style("search-bar", `
+.this {
+	position: relative;
+	margin-inline: 10px;
+	margin-bottom: 2px;
+	color: #4a5565;
+}
+
+.this input {
+	background-color: transparent;
+	field-sizing: content;
+	border: none;
+
+	position: relative;
+
+	outline: none !important;
+
+	color: inherit;
+	font-size: 2rem;
+	padding: 0;
+}
+
+.this > .accent {
+	position: absolute;
+	bottom: 2px;
+	left: 0; right: 0;
+
+	border: 1px solid #4a5565;
+	border-radius: var(--radius);
+	height: 0;
+
+	transition: border .1s ease-in;
+}
+
+.this:has(input:placeholder-shown) {
+	margin-inline: 5px;
+}
+
+.this:has(input:placeholder-shown) > .accent {
+	border: 4px solid #4a5565;
+	border-radius: 100%;
+	height: 0;
+}
+`);

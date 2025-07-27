@@ -47,14 +47,13 @@ export async function loader({ url }: RouteContext) {
 
 	if (media.length > 0) {
 		const last = media[media.length-1].popularity;
-		jsx.push(<MediaLoader href={`/rank/popularity?o=${last}`}/>);
+		jsx.push(<MediaLoader href={`/rank/popular?o=${last}`}/>);
 	}
 
 	if (cutoff) return jsx;
 
-	return shell(<div>
-		<h1>Popularity</h1>
-
-		<div className={`${rankGrid} ${similarityStyle}`}>{jsx}</div>
-	</div>, { title: `Popularity Rank` });
+	return shell(
+		<div className={`${rankGrid} ${similarityStyle}`}>{jsx}</div>,
+		{ title: `Popularity Rank`, search: { value: "!popular", focus: true } }
+	);
 }

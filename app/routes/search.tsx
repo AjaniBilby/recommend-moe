@@ -1,48 +1,33 @@
 import { RouteContext } from "htmx-router";
+import { MakeStatus } from "htmx-router/status";
+import { redirect } from "htmx-router/response";
+
+import { Vector, Vectorize } from "~/model/embedding.ts";
 
 import { MediaCard } from "~/component/media.tsx";
 
+import { Float32ArrayDot } from "~/util/math.ts";
 import { prisma } from "~/db.server.ts";
 import { shell } from "~/routes/$.tsx";
+import { Singleton } from "../util/singleton.ts";
 
 export async function loader({ request, url, headers }: RouteContext) {
 	const query = url.searchParams.get('q')?.toLowerCase() || "";
+	if (query === "") return redirect("/", MakeStatus("Permanent Redirect"));
 
-	if (request.headers.get("hx-target") != "search-results") return shell(<div className="wrapper">
-		<h1>Search</h1>
+	if (query.startsWith("!")) {
+		const command = await Bangs(query.slice(1));
+		if (command) return redirect(command, MakeStatus("Permanent Redirect"));
+	}
 
-		<form
-			style={{ marginTop: "1em", display: "flex", alignItems: "center", gap: "10px" }}
-			hx-trigger="input changed delay:400ms, submit, change"
-			hx-target="#search-results"
-			hx-replace-url="true"
-			hx-swap="innerHTML show:none transition:true"
-		>
-			<input type="search"
-				name="q" placeholder="Search..."
-				defaultValue={query}
-				autoCorrect="off" autoCapitalize="off" autoComplete="off"
-				autoFocus
-			></input>
-			<div className="text-muted" style={{
-				fontStyle: "italic",
-				fontSize: ".8em"
-			}}>name</div>
-		</form>
-
-		<div id="search-results" style={{
-			marginTop: "1em",
-			display: "grid",
-			gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-			gap: "10px",
-		}}>
-			{await Search(query)}
-		</div>
-
-	</div>, { title: "Search" });
-
-	// headers.set("Cache-Control", "private, max-age=30");
-	return await Search(query);
+	return shell(<div id="search-results" style={{
+		marginTop: "1em",
+		display: "grid",
+		gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+		gap: "10px",
+	}}>
+		{await Search(query)}
+	</div>, { title: "Search", search: { value: query, focus: true } });
 }
 
 
@@ -59,4 +44,38 @@ async function Search(query: string) {
 	return <>
 		{results.map(media => <MediaCard key={media.id} media={media} />)}
 	</>
+}
+
+
+const commands = {
+	"me"          : "/me",
+	"rank"        : "/rank",
+	"novel"       : "/rank/novel",
+	"original"    : "/rank/novel",
+	"unique"      : "/rank/novel",
+	"common"      : "/rank/novel?asc",
+	"normal"      : "/rank/novel?asc",
+	"popular"     : "/rank/popular",
+	"score"       : "/rank/score",
+	"quality"     : "/rank/score",
+}
+type Command = keyof typeof commands;
+const index = await Singleton("command-vectors", () => Vectorize(Object.keys(commands) as Command[]));
+async function Bangs(search: string) {
+	if (search in commands) return commands[search as Command];
+
+	const query = await Vector(search);
+
+	let score = 0;
+	let best: string | null = null;
+	for (const [ key, vector ] of index.entries()) {
+		const quality = Float32ArrayDot(query, vector);
+		if (quality < 0.5) continue;
+		if (quality < score) continue;
+
+		score = quality;
+		best = commands[key];
+	}
+
+	return best;
 }

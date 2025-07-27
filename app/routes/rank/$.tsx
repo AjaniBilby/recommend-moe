@@ -6,25 +6,22 @@ import { Link } from "~/component/link.tsx";
 import { shell as inherit } from "../$.tsx";
 
 
-
-export function shell(inner: JSX.Element, options: ShellOptions<{ headless?: boolean }>) {
+export function shell(inner: JSX.Element, options: Parameters<typeof inherit>[1]) {
 	ApplyMetaDefaults(options, { title: "Rank" });
 
-	return inherit(<>
-		<div style={{ display: "flex", gap: "10px", marginBlock: "1em" }}>
-			<Link href="/rank/score">
-				<button type="button" className="secondary">Score</button>
-			</Link>
-			<Link href="/rank/popularity">
-				<button type="button" className="secondary">Popularity</button>
-			</Link>
-			<Link href="/rank/novelty">
-				<button type="button" className="secondary">Novelty</button>
-			</Link>
-		</div>
+	options.nav ||= <>
+		<Link href="/rank/score">
+			<button type="button" className="secondary">Score</button>
+		</Link>
+		<Link href="/rank/popular">
+			<button type="button" className="secondary">Popularity</button>
+		</Link>
+		<Link href="/rank/novel">
+			<button type="button" className="secondary">Novelty</button>
+		</Link>
+	</>
 
-		{inner}
-	</>, options)
+	return inherit(inner, options)
 }
 
 

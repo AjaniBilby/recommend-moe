@@ -44,7 +44,7 @@ export async function loader({ url }: RouteContext) {
 	}
 
 	if (media.length > 0) {
-		let href = `/rank/novelty?o=${offset + 100}&p=${prev}`;
+		let href = `/rank/novel?o=${offset + 100}&p=${prev}`;
 		if (direction === "asc") href += "&asc";
 
 		jsx.push(<MediaLoader href={href}/>);
@@ -61,5 +61,5 @@ export async function loader({ url }: RouteContext) {
 		</div>
 
 		<div className={`${rankGrid} ${similarityStyle}`}>{jsx}</div>
-	</div>, { title: `Score Rank` });
+	</div>, { title: `Score Rank`, search: { value: "!novel", focus: true } });
 }
