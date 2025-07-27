@@ -1,27 +1,30 @@
-import { ApplyMetaDefaults, ShellOptions } from "htmx-router/shell";
+import { ApplyMetaDefaults } from "htmx-router/shell";
+import { ReactNode } from "react";
 import { Style } from "htmx-router/css";
 
-import { Link } from "~/component/link.tsx";
+import { Container } from "~/component/container.tsx";
+import { Tabs } from "~/component/input/tabs.tsx";
 
 import { shell as inherit } from "../$.tsx";
 
-
-export function shell(inner: JSX.Element, options: Parameters<typeof inherit>[1]) {
+type Options = Parameters<typeof inherit>[1] & { nav?: ReactNode };
+export function shell(inner: JSX.Element, options: Options) {
 	ApplyMetaDefaults(options, { title: "Rank" });
 
-	options.nav ||= <>
-		<Link href="/rank/score">
-			<button type="button" className="secondary">Score</button>
-		</Link>
-		<Link href="/rank/popular">
-			<button type="button" className="secondary">Popularity</button>
-		</Link>
-		<Link href="/rank/novel">
-			<button type="button" className="secondary">Novelty</button>
-		</Link>
-	</>
-
-	return inherit(inner, options)
+	return inherit(<>
+		<Container style={{
+			display: "flex", alignItems: "center",
+		}}>
+			<Tabs options={[
+				{ name: "Score", href: "/rank/score" },
+				{ name: "Popularity", href: "/rank/popular" },
+				{ name: "Novelty", href: "/rank/novel" }
+			]} />
+			<div style={{ flexGrow: 1 }}></div>
+			{options.nav}
+		</Container>
+		{inner}
+	</>, options)
 }
 
 

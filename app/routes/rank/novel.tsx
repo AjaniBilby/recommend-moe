@@ -52,14 +52,12 @@ export async function loader({ url }: RouteContext) {
 
 	if (url.searchParams.has("o")) return jsx;
 
-	return shell(<div>
-		<div style={{ marginBlock: "1em 0.35em", display: "flex", gap: "10px", alignItems: "center" }}>
-			<h1 style={{ margin: 0 }}>Novelty</h1>
-			<Link href={direction === "asc" ? "?" : "?asc"}>
-				<IconButton icon={direction === "asc" ? faArrowDownShortWide : faArrowUpWideShort}/>
-			</Link>
-		</div>
+	const nav = <Link href={direction === "asc" ? "?" : "?asc"}>
+		<IconButton icon={direction === "asc" ? faArrowDownShortWide : faArrowUpWideShort}/>
+	</Link>;
 
-		<div className={`${rankGrid} ${similarityStyle}`}>{jsx}</div>
-	</div>, { title: `Score Rank`, search: { value: "!novel", focus: true } });
+	return shell(
+		<div className={`${rankGrid} ${similarityStyle}`}>{jsx}</div>,
+		{ title: `Score Rank`, nav, search: { value: "!novel", focus: true } }
+	);
 }

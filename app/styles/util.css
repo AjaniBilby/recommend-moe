@@ -2,6 +2,7 @@ nav.breadcrumb {
 	margin-left: min(30px, max(0px, calc(var(--max-width)/2 - 50vw + 60px)));
 }
 
+.no-select { user-select: none;}
 
 .contents { display: contents; }
 .block    { display: block; }

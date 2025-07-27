@@ -3,7 +3,9 @@ import { RouteContext } from "htmx-router";
 import { ReactNode } from "react";
 import { Style } from "htmx-router/css";
 
+import Client from "~/manifest.tsx";
 import { DialogResponse } from "~/component/server/dialog.tsx";
+import { ThemeSwitcher } from "~/component/client/theme-switcher.tsx";
 import { Scripts } from "~/component/server/scripts.tsx";
 import { Link } from "~/component/link.tsx";
 import { Head } from "~/component/server/head.tsx";
@@ -36,16 +38,18 @@ const headers = <>
 	<link rel="icon" href="/favicon-16x16.png"          sizes="16x16"></link> */}
 </>;
 
-const header = <div id="header" hx-preserve="true">
+const header = <div id="theme-switcher" hx-preserve="true">
 	{/* <LazyLoad href="/user/me/navbar/masked">&nbsp;</LazyLoad> */}
 	{/* <Navbar /> */}
+	<Client.ThemeSwitcher>
+		<ThemeSwitcher />
+	</Client.ThemeSwitcher>
 </div>;
 
 
 export function shell(inner: JSX.Element, options: ShellOptions<{
 	headless?: boolean,
-	search?: { value?: string, focus?: boolean },
-	nav?: ReactNode
+	search?: { value?: string, focus?: boolean }
 }>) {
 	ApplyMetaDefaults(options, { title: "Recommend.moe" });
 
@@ -56,16 +60,42 @@ export function shell(inner: JSX.Element, options: ShellOptions<{
 			<Scripts />
 		</Head>
 		<body className="dp-enable" hx-boost="true" hx-ext="preload,hx-keep,hx-prep">
-			{!options.headless && <div style={{ display: "flex", gap: "10px", alignItems: "center", marginBlock: "10px 5px" }}>
-				{SearchBar(options.search)}
-				{options.nav}
-				<div style={{ flexGrow: 1 }}></div>
-				{header}
+			{!options.headless && <div className={headerStyle.name}>
+
+				<div>
+					{SearchBar(options.search)}
+					<div style={{ flexGrow: 1 }}></div>
+					{header}
+				</div>
 			</div>}
 			{inner}
 		</body>
 	</html>
 }
+
+const headerStyle = new Style("header", `
+.this {
+	display: flex;
+	justify-content: center;
+	margin-inline: -13px;
+}
+
+.this > div {
+	display: flex;
+	align-items: center;
+	margin-block: 5px 5px;
+	padding-inline: 15px;
+	padding-block: 0 5px;
+	width: 100%;
+	max-width: var(--max-width);
+
+	box-shadow: 0px 6px 10px #00000012;
+}
+
+[data-theme=dark] .this > div {
+	box-shadow: 0px 6px 10px #ffffff15;
+}
+`);
 
 
 export async function error(ctx: RouteContext, e: unknown) {
@@ -125,73 +155,96 @@ async function ErrorBody(error: unknown, path: string) {
 
 
 
-function SearchBar(search?: { value?: string, autoFocus?: boolean }) {
+function SearchBar(search?: { value?: string }) {
 	return <form
-		style={{ display: "flex", fontSize: "2rem", fontWeight: "bold" }}
+		className={searchStyle.name}
 		action="/search"
 	>
-		<Link href="/" style={{ userSelect: "none" }}>Recommend</Link>
+		<Link href="/" className="no-select">Recommend</Link>
 		<label className="contents">
-			<div className={searchStyle.name}>
+			<div className="search">
 				<input
 					name="q"
 					placeholder=" "
 					autoComplete="off"
 					autoCapitalize="off"
 					defaultValue={search?.value}
-					autoFocus={search?.autoFocus}
 				></input>
 				<div className="accent"></div>
 			</div>
-			<div style={{
-				userSelect: "none",
-				color: "rgb(250, 0, 240)"
-			}}>moe</div>
+			<div className="no-select text-magenta">moe</div>
 		</label>
 	</form>
 }
 
 const searchStyle = new Style("search-bar", `
 .this {
+	display: flex;
+	font-size: 2rem;
+	font-weight: bold;
+	padding-left: 10px;
+}
+
+.this .search {
 	position: relative;
 	margin-inline: 10px;
 	margin-bottom: 2px;
-	color: #4a5565;
+
+	flex-grow: 1;
+
+	overflow: clip;
 }
 
-.this input {
-	background-color: transparent;
+.this .search > input {
 	field-sizing: content;
 	border: none;
 
 	position: relative;
+	padding-block: 0px;
+	padding-inline: 8px;
 
 	outline: none !important;
 
-	color: inherit;
+	background-color: transparent;
+	color: hsl(var(--muted-foreground));
 	font-size: 2rem;
-	padding: 0;
+
 }
 
-.this > .accent {
+.this .search > .accent {
 	position: absolute;
-	bottom: 2px;
-	left: 0; right: 0;
+	bottom: 0px;
+	left: 0;
 
-	border: 1px solid #4a5565;
+	background-color: hsl(var(--muted));
+	z-index: -1;
+
 	border-radius: var(--radius);
-	height: 0;
+	height: 100%;
+	width: 100%;
 
-	transition: border .1s ease-in;
+	transition-property: width, height, background-color;
+	transition-duration: .1s, .1s, .1s;
 }
 
-.this:has(input:placeholder-shown) {
+.this .search:has(input:placeholder-shown) {
 	margin-inline: 5px;
+	flex-grow: 0;
 }
 
-.this:has(input:placeholder-shown) > .accent {
-	border: 4px solid #4a5565;
+.this .search:has(input:placeholder-shown) > .accent {
 	border-radius: 100%;
-	height: 0;
+	left: 0;
+	bottom: 2px;
+
+	height: 8px;
+	width: 8px;
+	background-color: hsl(var(--muted-foreground));
+}
+
+.this .search:has(input:placeholder-shown) > input {
+	border-bottom: none;
+	background-color: transparent;
+	padding-inline: 0;
 }
 `);

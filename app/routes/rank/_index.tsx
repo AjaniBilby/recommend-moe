@@ -1,5 +1,5 @@
-import { shell } from "./$.tsx";
+import { redirect } from "htmx-router/response";
 
 export function loader() {
-	return shell(<div></div>, {});
+	return redirect("/rank/score");
 }
