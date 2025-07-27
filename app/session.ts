@@ -90,11 +90,10 @@ export async function RefreshSession(prefix: number, expiry: Date) {
 	if (used < TIME_SCALE.hour) return;
 
 	try {
-		const { userID } = await prisma.userSession.update({
+		await prisma.userSession.update({
 			select: { userID: true },
 			where: { prefix },
 			data:  { expiry: new Date(Date.now() + SESSION_EXPIRY) }
 		});
-		await prisma.$executeRaw`UPDATE "User" SET "lastLogin" = now() WHERE "id" = ${userID};`
 	} catch (e) { console.error(e); }
 }

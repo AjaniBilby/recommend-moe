@@ -7,6 +7,7 @@ import { EnforcePermission } from "~/model/permission.ts";
 import { MediaCard, MediaLoader } from "~/component/media.tsx";
 import { IconButton } from "~/component/form.tsx";
 import { Container } from "~/component/container.tsx";
+import { Open } from "~/component/link.tsx";
 
 import { similarityStyle } from "../media/$id/similar/_index.tsx";
 import { SafeQueryInteger } from "~/util/math.ts";
@@ -51,12 +52,11 @@ export async function loader({ request, url, cookie, headers }: RouteContext) {
 	return shell(<>
 		<Container style={{ marginBlock: "1em", display: "flex" }}>
 			<div style={{ flexGrow: 1 }}></div>
-			<a hx-put="/list/fetch">
+			<Open href="/list/fetch">
 				<IconButton icon={faArrowsRotate}/>
-			</a>
+			</Open>
+
 		</Container>
 		<div className={`${rankGrid} ${similarityStyle}`}>{jsx}</div>
-	</>,
-		{ title: `My List`, search: { value: "!list" } }
-	);
+	</>, { title: `My List`, search: { value: "!list" } });
 }

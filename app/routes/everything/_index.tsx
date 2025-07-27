@@ -1,15 +1,19 @@
 import { GetMediaRecommendation } from "@db/sql.ts";
+import { faArrowsRotate } from "@fortawesome/free-solid-svg-icons/index.js";
 import { RouteContext } from "htmx-router";
 
 import { EnforcePermission } from "~/model/permission.ts";
 
 import { MediaCard, MediaLoader } from "~/component/media.tsx";
+import { IconButton } from "~/component/form.tsx";
+import { Container } from "~/component/container.tsx";
+import { Open } from "~/component/link.tsx";
 
-import { similarityStyle } from "./media/$id/similar/_index.tsx";
+import { similarityStyle } from "../media/$id/similar/_index.tsx";
 import { SafeQueryInteger } from "~/util/math.ts";
-import { rankGrid } from "./rank/$.tsx";
+import { rankGrid } from "../rank/$.tsx";
 import { prisma } from "~/db.server.ts";
-import { shell } from "./$.tsx";
+import { shell } from "../$.tsx";
 
 export async function loader({ request, url, cookie, headers }: RouteContext) {
 	headers.set("Cache-Control", "private");
@@ -45,8 +49,14 @@ export async function loader({ request, url, cookie, headers }: RouteContext) {
 
 	if (url.searchParams.has("o")) return jsx;
 
-	return shell(
-		<div className={`${rankGrid} ${similarityStyle}`}>{jsx}</div>,
-		{ title: `Recommend Everything`, search: { value: "!everything" } }
-	);
+	return shell(<>
+		<Container style={{ marginBlock: "1em", display: "flex" }}>
+			<div style={{ flexGrow: 1 }}></div>
+			<Open href="/everything/index">
+				<IconButton icon={faArrowsRotate}/>
+			</Open>
+
+		</Container>
+		<div className={`${rankGrid} ${similarityStyle}`}>{jsx}</div>
+	</>, { title: `Recommend Everything`, search: { value: "!everything" } });
 }
