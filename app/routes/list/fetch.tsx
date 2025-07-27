@@ -1,3 +1,4 @@
+import { UpdateUserAffinity } from "@db/sql.ts";
 import { RouteContext } from "htmx-router";
 import { revalidate } from "htmx-router/response";
 
@@ -18,7 +19,6 @@ export async function action({ request, cookie }: RouteContext) {
 
 	const access = DecodeSecret(token.access);
 
-	const touched = new Set<number>();
 	for await (const chunk of Chunks(access)) {
 		for (const rating of chunk) {
 			if (rating.score <= 0) continue;
@@ -47,10 +47,25 @@ export async function action({ request, cookie }: RouteContext) {
 				});
 				changed = batch.count > 0;
 			}
-
-			if (changed) touched.add(rating.score);
-			console.log(changed, rating.title);
 		}
+	}
+
+	// Stale all affinities
+	await prisma.userAffinity.updateMany({
+		where: { OR: [ { aID: userID }, { bID: userID } ]},
+		data:  { stale: true }
+	});
+
+	const max = await prisma.user.findFirstOrThrow({
+		select:  { id: true },
+		orderBy: { id: "desc" }
+	});
+	const partition = 10_000;
+	for (let i=0; i<max.id; i += partition) {
+		console.log(userID, i, i+partition, 10, i/max.id);
+		console.time("User Affinity");
+		await prisma.$queryRawTyped(UpdateUserAffinity(userID, i, i+partition, 10));
+		console.timeEnd("User Affinity");
 	}
 
 	return revalidate();
