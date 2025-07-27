@@ -54,6 +54,6 @@ export async function loader({ url }: RouteContext) {
 
 	return shell(
 		<div className={`${rankGrid} ${similarityStyle}`}>{jsx}</div>,
-		{ title: `Popularity Rank`, search: { value: "!popular", focus: true } }
+		{ title: `Popularity Rank`, search: { value: "!popular" } }
 	);
 }

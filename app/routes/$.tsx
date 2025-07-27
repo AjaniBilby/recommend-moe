@@ -181,6 +181,7 @@ const searchStyle = new Style("search-bar", `
 	display: contents;
 	font-size: 2rem;
 	font-weight: bold;
+	user-select: none;
 }
 
 .this a {
@@ -207,6 +208,7 @@ const searchStyle = new Style("search-bar", `
 .this .search > input {
 	field-sizing: content;
 	border: none;
+	user-select: all;
 
 	position: relative;
 	padding-block: 0px;
@@ -228,13 +230,13 @@ const searchStyle = new Style("search-bar", `
 	z-index: -1;
 
 	background-color: hsl(var(--muted-foreground));
-	border-radius: 100%;
+	border-radius: var(--radius);
 	height: 8px;
 	width: 8px;
 
 	transition-property: width, height, background-color;
-	transition-duration: .1s, .1s, .1s;
-	transition-delay: 0s, .05s, 0s;
+	transition-duration: .2s, .2s, .1s;
+	transition-delay: 0s, .1s, .1s;
 }
 
 .this label:focus-within .search, .this .search:not(:has(input:placeholder-shown)) {
@@ -247,10 +249,13 @@ const searchStyle = new Style("search-bar", `
 
 		height: 100%;
 		width: 100%;
+
+		transition-delay: 0s, 0s, 0s;
 	}
 
 	& > input {
 		padding-inline: 8px;
+		min-width: 100%;
 	}
 }
 

@@ -63,7 +63,7 @@ export async function SearchEntityPermissions(target: PermissionEntityTarget, qu
 
 export async function EnforcePermission(request: Request, cookies: Cookies, permission?: Permission) {
 	if (!permission) {
-		const userID = GetUserID(request, cookies);
+		const userID = await GetUserID(request, cookies);
 		if (!userID) throw new Response("Unauthorised Access", MakeStatus("Unauthorized"));
 
 		return userID;

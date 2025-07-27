@@ -58,6 +58,6 @@ export async function loader({ url }: RouteContext) {
 
 	return shell(
 		<div className={`${rankGrid} ${similarityStyle}`}>{jsx}</div>,
-		{ title: `Score Rank`, nav, search: { value: "!novel", focus: true } }
+		{ title: `Score Rank`, nav, search: { value: "!novel" } }
 	);
 }

@@ -8,7 +8,7 @@ export function loader() {
 		<Container>
 			<h2>Quick Links</h2>
 			<div style={{ display: "flex", gap: "10px" }}>
-				<Link href="/search?q=gundam">
+				<Link href="/search?q=search">
 					<button type="button" className="secondary">Search</button>
 				</Link>
 				<Link href="/rank">
