@@ -1,10 +1,10 @@
 import process from "node:process";
 import { RouteContext } from "htmx-router";
 import { MakeStatus } from "htmx-router/status";
+import { Buffer } from "node:buffer";
 import { text } from "htmx-router/response";
 
-import { GetChallenge, StartChallenge } from "~/session.ts";
-import { Buffer } from "node:buffer";
+import { GetChallenge } from "~/session.ts";
 
 export async function loader({ url, cookie }: RouteContext) {
 	if (url.searchParams.get("state") !== cookie.get("state")) throw new Response("Invalid state parameter", MakeStatus("Bad Request"));
@@ -15,6 +15,17 @@ export async function loader({ url, cookie }: RouteContext) {
 	const challenge = GetChallenge(cookie)?.slice(0, 128);
 	if (!challenge) throw new Error("Timeout");
 
+	const tokens = await MakeToken(challenge, code);
+	const user = await FetchUser(tokens);
+
+	console.log(user);
+
+	return text("hi");
+}
+
+
+type Token = { token_type: "Bearer", expires_in: number, access_token: string, refresh_token: string };
+async function MakeToken(challenge: string, code: string): Promise<Token> {
 	const client_id = process.env.MAL_CLIENT_ID;
 	if (!client_id) throw new Error("Client ID is not defined");
 	const client_secret = process.env.MAL_CLIENT_SECRET;
@@ -37,18 +48,15 @@ export async function loader({ url, cookie }: RouteContext) {
 
 	if (!req.ok) throw new Error(await req.text());
 
-	const tokens = await req.json();
+	return await req.json();
+}
 
-	console.log(tokens);
-	// cookie.unset("state");
 
-	// const to = new URL("https://myanimelist.net/v1/oauth2/authorize");
-	// to.searchParams.set("response_type", "code");
-	// to.searchParams.set("client_id", CLIENT_ID);
-	// to.searchParams.set("state", state);
-	// to.searchParams.set("redirect_url", `http://localhost:8000/login/mal/callback`)
-	// to.searchParams.set("code_challenge", challenge)
-	// to.searchParams.set("code_challenge_method", "S256");
+async function FetchUser(token: Token): Promise<{ id: number, name: string }> {
+	const req = await fetch("https://api.myanimelist.net/v2/users/@me", {
+		headers: { Authorization: `Bearer ${token.access_token}` }
+	});
+	if (!req.ok) throw new Error(`Unable to load user information from MAL\n${await req.text()}`);
 
-	return text("hi");
+	return await req.json();
 }
