@@ -16,7 +16,8 @@ export function loader() {
 				</Link>
 			</div>
 
-			<Open href="/login">Login</Open>
+			<h2>Authenticate</h2>
+			<Open href="/login"><button type="button">Login</button></Open>
 		</Container>
 	</div>, {});
 }

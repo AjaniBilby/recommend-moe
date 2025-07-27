@@ -64,7 +64,6 @@ export function shell(inner: JSX.Element, options: ShellOptions<{
 
 				<div>
 					{SearchBar(options.search)}
-					<div style={{ flexGrow: 1 }}></div>
 					{header}
 				</div>
 			</div>}
@@ -161,7 +160,7 @@ function SearchBar(search?: { value?: string }) {
 		action="/search"
 	>
 		<Link href="/" className="no-select">Recommend</Link>
-		<label className="contents">
+		<label>
 			<div className="search">
 				<input
 					name="q"
@@ -179,20 +178,30 @@ function SearchBar(search?: { value?: string }) {
 
 const searchStyle = new Style("search-bar", `
 .this {
-	display: flex;
+	display: contents;
 	font-size: 2rem;
 	font-weight: bold;
+}
+
+.this a {
 	padding-left: 10px;
+}
+
+.this label {
+	display: flex;
+	flex-grow: 1;
 }
 
 .this .search {
 	position: relative;
-	margin-inline: 10px;
+	margin-inline: 5px;
 	margin-bottom: 2px;
 
-	flex-grow: 1;
-
 	overflow: clip;
+	transition: flex-grow .1s ease;
+}
+.this label:focus-within .search {
+	flex-grow: 1;
 }
 
 .this .search > input {
@@ -201,7 +210,7 @@ const searchStyle = new Style("search-bar", `
 
 	position: relative;
 	padding-block: 0px;
-	padding-inline: 8px;
+	padding-inline: 0;
 
 	outline: none !important;
 
@@ -213,38 +222,36 @@ const searchStyle = new Style("search-bar", `
 
 .this .search > .accent {
 	position: absolute;
-	bottom: 0px;
+	bottom: 2px;
 	left: 0;
 
-	background-color: hsl(var(--muted));
 	z-index: -1;
 
-	border-radius: var(--radius);
-	height: 100%;
-	width: 100%;
+	background-color: hsl(var(--muted-foreground));
+	border-radius: 100%;
+	height: 8px;
+	width: 8px;
 
 	transition-property: width, height, background-color;
 	transition-duration: .1s, .1s, .1s;
+	transition-delay: 0s, .05s, 0s;
 }
 
-.this .search:has(input:placeholder-shown) {
-	margin-inline: 5px;
-	flex-grow: 0;
+.this label:focus-within .search, .this .search:not(:has(input:placeholder-shown)) {
+	margin-inline: 10px;
+
+	& > .accent {
+		background-color: hsl(var(--muted));
+		border-radius: var(--radius);
+		bottom: 0;
+
+		height: 100%;
+		width: 100%;
+	}
+
+	& > input {
+		padding-inline: 8px;
+	}
 }
 
-.this .search:has(input:placeholder-shown) > .accent {
-	border-radius: 100%;
-	left: 0;
-	bottom: 2px;
-
-	height: 8px;
-	width: 8px;
-	background-color: hsl(var(--muted-foreground));
-}
-
-.this .search:has(input:placeholder-shown) > input {
-	border-bottom: none;
-	background-color: transparent;
-	padding-inline: 0;
-}
 `);
