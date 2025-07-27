@@ -9,6 +9,12 @@ model User {
 
 	createdAt DateTime @default(now())
 	updatedAt DateTime @default(now()) @updatedAt
+
+	sessions UserSession[]
+	tokens UserAuthToken[]
+
+	permissions UserPermission[] @ignore // dangerous: doesn't include permissions inferred from role
+	roles Role[]
 }
 
 model ExternalUser {
@@ -59,4 +65,48 @@ model UserAffinity {
 
 	stale Boolean @default(true)
 	@@index([stale, aID, bID]) // allow index only reads
+}
+
+
+
+
+model UserSession {
+	// session token
+	prefix Int    @id             // first 32 bytes of the session
+	key    String @db.VarChar(50) // remaining bytes
+
+	ip      String @db.Inet()
+	expiry  DateTime
+
+	hash String @db.VarChar(50) @default("") // Hash of browser identifiable information
+
+	/// [PushSubscriptionJSON]
+	subscription Json? // web push subscription
+
+	user User @relation(fields: [userID], references: [id], onDelete: Cascade, onUpdate: Cascade)
+	userID Int
+	@@index([userID])
+
+	updatedAt DateTime @default(now()) @updatedAt
+	createdAt DateTime @default(now())
+}
+
+model UserAuthToken { // OAuth2 Token
+	id Int @id @default(autoincrement())
+
+	type   ExternalKind
+	expiry DateTime?
+
+	access  String? /// encrypt pre-db storage
+	refresh String? /// encrypt pre-db storage
+
+	user User @relation(fields: [userID], references: [id], onDelete: Cascade, onUpdate: Cascade)
+	userID Int
+	@@index([userID])
+
+	updatedAt DateTime @default(now()) @updatedAt
+	createdAt DateTime @default(now())
+
+	// helpful for pooling tokens to potentially scrape data
+	@@index([updatedAt(sort: Desc)])
 }

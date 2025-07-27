@@ -1,13 +1,28 @@
 import { Cookies } from "htmx-router/cookies";
-import { prisma } from "../db.server.ts";
 
-export function GetUserID(request: Request, cookies: Cookies) {
-	const user = cookies.get("userID");
-	if (!user) return null;
+import { GetSessionAuth, RefreshSession } from "~/session.ts";
+import { prisma } from "~/db.server.ts";
 
-	return Number(user) || null;
+export async function GetUserID(request: Request, cookies: Cookies): Promise<number | null> {
+	const session = GetSessionAuth(request, cookies);
+	if (!session) return null;
+
+	// Check the sessionID is correct
+	const found = await prisma.userSession.findFirst({
+		select: { prefix: true, userID: true, expiry: true },
+		where: {
+			prefix: session.prefix,
+			key:    session.key,
+			ip:     session.ip,
+			expiry: { gte: new Date() },
+		}
+	});
+	if (!found) return null;
+
+	RefreshSession(found.prefix, found.expiry).catch(console.error);
+
+	return found.userID;
 }
-
 
 
 export async function OnboardMalUser(user: { id: number, name: string }) {
@@ -18,7 +33,7 @@ export async function OnboardMalUser(user: { id: number, name: string }) {
 	});
 	if (existing) return existing.userID;
 
-	return await prisma.$transaction(async (tx) => {
+	const userID = await prisma.$transaction(async (tx) => {
 		const slot = await tx.user.create({});
 		await tx.externalUser.create({ data: {
 			type: "MyAnimeList", id, userID: slot.id,
@@ -27,4 +42,28 @@ export async function OnboardMalUser(user: { id: number, name: string }) {
 
 		return slot.id;
 	});
+
+	if (!admin_present) AutoAdmin(userID).catch(console.error);
+
+	return userID;
+}
+
+
+let admin_present = false;
+async function AutoAdmin(userID: number) {
+	const existing = await prisma.user.findFirst({
+		select: { id: true },
+		where: { roles: { some: { name: "ADMIN" }}}
+	});
+	if (existing) {
+		admin_present = true;
+		return false;
+	}
+
+	await prisma.user.update({
+		where: { id: userID },
+		data: { roles: { connect: { name: "ADMIN" }}}
+	});
+	admin_present = true;
+	return true;
 }

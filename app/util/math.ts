@@ -16,3 +16,39 @@ export function Float32ArrayDot(a: Float32Array, b: Float32Array) {
 	for (let i = 0; i < a.length; i++) sum += a[i] * b[i];
 	return sum;
 }
+
+
+
+/**
+ * Both sets must include no duplicates and be sorted in the same order
+ */
+export function IsSortedSuperSet<T> (sup: T[], base: T[]): boolean {
+	let i = 0; let j = 0;
+	while (i < sup.length && j < base.length) {
+		if (sup[i] == base[j]) {
+			i++; j++;
+			continue;
+		}
+
+		i++;
+	}
+
+	return j >= base.length;
+}
+
+/**
+ * The permission arrays must be sorted, and not include duplicates
+ */
+export function CompareSortedSets<T>(a: T[], b: T[]): 1 | 0 | -1 | null {
+	const A = IsSortedSuperSet<T>(a, b);
+	const B = IsSortedSuperSet<T>(b, a);
+
+	const idx = Number(A) | (Number(B) << 1);
+	return COMPARE_SETS_LOOKUP[idx] || null;
+}
+const COMPARE_SETS_LOOKUP = [
+	null, // !A && !B
+	1,    //  A && !B
+	-1,   // !A &&  B
+	0,    //  A &&  B
+] as const;

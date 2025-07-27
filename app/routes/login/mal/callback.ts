@@ -1,12 +1,18 @@
 import process from "node:process";
 import { RouteContext } from "htmx-router";
 import { MakeStatus } from "htmx-router/status";
+import { redirect } from "htmx-router/response";
 import { Buffer } from "node:buffer";
-import { text } from "htmx-router/response";
 
-import { GetChallenge } from "~/session.ts";
+import { OnboardMalUser } from "~/model/user.ts";
 
-export async function loader({ url, cookie }: RouteContext) {
+import { CreateSession, GetChallenge } from "~/session.ts";
+import { GetClientIPAddress } from "~/util/network.ts";
+import { EncodeSecret } from "~/util/secret.ts";
+import { TIME_SCALE } from "~/util/time.ts";
+import { prisma } from "~/db.server.ts";
+
+export async function loader({ request, url, cookie }: RouteContext) {
 	if (url.searchParams.get("state") !== cookie.get("state")) throw new Response("Invalid state parameter", MakeStatus("Bad Request"));
 
 	const code = url.searchParams.get("code");
@@ -16,11 +22,23 @@ export async function loader({ url, cookie }: RouteContext) {
 	if (!challenge) throw new Error("Timeout");
 
 	const tokens = await MakeToken(challenge, code);
+	cookie.unset("state");
+
+	const expiry = new Date(Date.now() + tokens.expires_in * TIME_SCALE.second);
 	const user = await FetchUser(tokens);
 
-	console.log(user);
+	const userID = await OnboardMalUser(user);
 
-	return text("hi");
+	await prisma.userAuthToken.create({ data: {
+		type: "MyAnimeList",
+		access: EncodeSecret(tokens.access_token),
+		refresh: EncodeSecret(tokens.refresh_token),
+		userID, expiry
+	}});
+
+	CreateSession(cookie, userID, GetClientIPAddress(request));
+
+	return redirect("/");
 }
 
 

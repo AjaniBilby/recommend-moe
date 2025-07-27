@@ -1,5 +1,5 @@
 import { Container } from "~/component/container.tsx";
-import { Link } from "~/component/link.tsx";
+import { Link, Open } from "~/component/link.tsx";
 
 import { shell } from "./$.tsx";
 
@@ -15,6 +15,8 @@ export function loader() {
 					<button type="button" className="secondary">Rank</button>
 				</Link>
 			</div>
+
+			<Open href="/login">Login</Open>
 		</Container>
 	</div>, {});
 }
