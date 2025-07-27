@@ -5,7 +5,8 @@ enum MediaKind {
 model Media {
 	id Int @id @default(autoincrement())
 
-	title String @db.Citext() @unique
+	title       String @db.Citext() @unique
+	description String @db.Citext() @default("")
 
 	kind MediaKind
 	icon String
@@ -31,8 +32,26 @@ model Media {
 	affinitiesAsB MediaAffinity[] @relation("MediaAffinityB")
 
 	calculation MediaRanking? @ignore
+
+	titles MediaTitle[]
 }
 
+model MediaTitle {
+	type String @db.Citext() // non-case sensitive
+
+	mediaID Int
+	media   Media @relation(fields: [mediaID], references: [id], onUpdate: Cascade, onDelete: Cascade)
+
+	@@unique([mediaID, type])
+
+	title String @db.Citext()
+	embedding Unsupported("vector(384)")
+
+	@@index([title(ops: raw("gin_trgm_ops"))], type: Gin, name: "MediaTitle_title_trgm_idx")
+
+	// @@index([embedding(ops: raw("vector_cosine_ops"))], type: Hnsw, name: "MeditaTitle_embedding_vec_idx");
+	@@index([embedding])
+}
 
 enum ExternalKind {
 	MyAnimeList
