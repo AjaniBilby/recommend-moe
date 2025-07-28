@@ -3,9 +3,9 @@ import { RouteContext } from "htmx-router";
 
 import Client from "~/manifest.tsx";
 import { Dialog } from "~/component/dialog.tsx";
+import { Link } from "~/component/link.tsx";
 
 import { prisma } from "~/db.server.ts";
-import { title } from "node:process";
 
 export const parameters = { id: Number };
 export async function loader({ params }: RouteContext<typeof parameters>) {
@@ -18,10 +18,12 @@ export async function loader({ params }: RouteContext<typeof parameters>) {
 	const histogram = await prisma.$queryRawTyped(GetMediaSimilarityHistogram(params.id));
 
 	return <Dialog>
-		<h3 style={{ marginTop: 0 }}>
-			Novelty&nbsp;
-			<span className="text-muted">{((media?.novelty || 0) * 100).toFixed(2)}%</span>
-		</h3>
+		<Link href="/rank/novel">
+			<h3 style={{ marginTop: 0 }}>
+				Novelty&nbsp;
+				<span className="text-muted">{((media?.novelty || 0) * 100).toFixed(2)}%</span>
+			</h3>
+		</Link>
 		<Client.Chart
 			type="bar"
 			data={{

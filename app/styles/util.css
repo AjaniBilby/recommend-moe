@@ -6,6 +6,7 @@ nav.breadcrumb {
 
 .contents { display: contents; }
 .block    { display: block; }
+.inline   { display: inline-block; }
 
 .ellipsis   { text-overflow: ellipsis; text-wrap: nowrap; overflow: hidden }
 .field-size { field-sizing: content; }

@@ -14,7 +14,7 @@ import { shell } from "./$.tsx";
 export async function loader({ url }: RouteContext) {
 	const direction = url.searchParams.has("asc") ? "asc" : "desc";
 	const offset = SafeQueryInteger(url.searchParams, "o", 0);
-	let prev = SafeQueryInteger(url.searchParams, "p", 100);
+	let prev = SafeQueryInteger(url.searchParams, "p", 101);
 
 	const media = await prisma.media.findMany({
 		select:  { id: true, title: true, icon: true, novelty: true, scoreRank: true },
@@ -58,6 +58,6 @@ export async function loader({ url }: RouteContext) {
 
 	return shell(
 		<div className={`${rankGrid} ${similarityStyle}`}>{jsx}</div>,
-		{ title: `Score Rank`, nav, search: { value: "!novel" } }
+		{ title: `Novelty Rank`, nav, search: { value: "!novel" } }
 	);
 }

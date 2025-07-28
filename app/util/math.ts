@@ -1,3 +1,11 @@
+export function Truncate(x: number, digits: number = 1) {
+	if (digits < 1) return Math.trunc(x);
+
+	const m = 10 ** digits;
+	return Math.trunc(x * m) / m;
+}
+
+
 export function SafeInteger(value: number, fallback: number) {
 	if (!Number.isSafeInteger(value)) return fallback;
 	return value;
@@ -6,6 +14,24 @@ export function SafeInteger(value: number, fallback: number) {
 export function SafeQueryInteger(url: URLSearchParams, key: string, fallback: number) {
 	if (!url.has(key)) return fallback;
 	return SafeInteger(Number(url.get(key) || ""), fallback);
+}
+
+export function AlignUpInteger(x: number, multiple: number) {
+	if (multiple === 0) return x;
+
+	const remainder = x % multiple;
+	return remainder !== 0
+		? x + (multiple - remainder)
+		: x;
+}
+
+export function AlignDownInteger(x: number, multiple: number) {
+	if (multiple === 0) return x;
+
+	const remainder = x % multiple;
+	return remainder !== 0
+		? x - remainder
+		: x;
 }
 
 

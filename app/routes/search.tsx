@@ -7,13 +7,13 @@ import { Vector, Vectorize } from "~/model/embedding.ts";
 import { MediaCard } from "~/component/media.tsx";
 
 import { Float32ArrayDot } from "~/util/math.ts";
+import { Singleton } from "~/util/singleton.ts";
 import { prisma } from "~/db.server.ts";
 import { shell } from "~/routes/$.tsx";
-import { Singleton } from "../util/singleton.ts";
 
-export async function loader({ request, url, headers }: RouteContext) {
-	const query = url.searchParams.get('q')?.toLowerCase() || "";
-	if (query === "") return redirect("/", MakeStatus("Permanent Redirect"));
+export async function loader({ url, headers }: RouteContext) {
+	const query = url.searchParams.get('q')?.toLowerCase().slice(0, 250) || "";
+	if (query === "" && url.searchParams.has("q")) return redirect("/", MakeStatus("Permanent Redirect"));
 
 	if (query.startsWith("!")) {
 		const command = await Bangs(query.slice(1));
@@ -27,7 +27,10 @@ export async function loader({ request, url, headers }: RouteContext) {
 		gap: "10px",
 	}}>
 		{await Search(query)}
-	</div>, { title: "Search", search: { value: query, focus: true } });
+	</div>, {
+		title: query ? `Search - ${query}` : "Search",
+		search: { value: query, focus: query === "" }
+	});
 }
 
 

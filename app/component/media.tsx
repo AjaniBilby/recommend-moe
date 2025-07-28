@@ -51,6 +51,13 @@ const style = new Style("media", `
 	aspect-ratio: 2/3;
 	height: unset !important;
 }
+
+.this.htmx-request {
+	border-width: 2px;
+}
+.this.htmx-request .title {
+	bottom: calc(100% + 2px);
+}
 `);
 
 

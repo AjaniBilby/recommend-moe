@@ -5,7 +5,9 @@ import { redirect } from "htmx-router/response";
 
 import { StartChallenge } from "~/session.ts";
 
-export function loader({ cookie }: RouteContext) {
+export function loader({ cookie, headers }: RouteContext) {
+	headers.set("Cache-Control", "private, no-store");
+
 	const state = randomBytes(16).toString("hex");
 	const challenge = StartChallenge(cookie).slice(0, 128);
 	cookie.set("state", state.slice(0, 128));

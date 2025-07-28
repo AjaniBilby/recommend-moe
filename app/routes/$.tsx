@@ -7,7 +7,7 @@ import Client from "~/manifest.tsx";
 import { DialogResponse } from "~/component/server/dialog.tsx";
 import { ThemeSwitcher } from "~/component/client/theme-switcher.tsx";
 import { Scripts } from "~/component/server/scripts.tsx";
-import { Link } from "~/component/link.tsx";
+import { Link, Open } from "~/component/link.tsx";
 import { Head } from "~/component/server/head.tsx";
 
 import mainsheetUrl from "~/styles/main.css?url";
@@ -129,7 +129,7 @@ async function ErrorBody(error: unknown, path: string) {
 			<h1 style={{ marginTop: 0 }}>{error.status} {error.statusText}</h1>
 			<p style={{ whiteSpace: "pre" }}>{await error.text()}</p>
 			{(error.status === 401 || error.status === 403) && <p style={{ textAlign: "right"}}>
-				<Link href="/login"><button type="button">Login</button></Link>
+				<Open href="/login"><button type="button">Login</button></Open>
 			</p>}
 		</>
 	}
@@ -154,7 +154,7 @@ async function ErrorBody(error: unknown, path: string) {
 
 
 
-function SearchBar(search?: { value?: string }) {
+function SearchBar(search?: { value?: string, focus?: boolean }) {
 	return <form
 		className={searchStyle.name}
 		action="/search"
@@ -168,6 +168,7 @@ function SearchBar(search?: { value?: string }) {
 					autoComplete="off"
 					autoCapitalize="off"
 					defaultValue={search?.value}
+					autoFocus={search?.focus}
 				></input>
 				<div className="accent"></div>
 			</div>
@@ -258,5 +259,4 @@ const searchStyle = new Style("search-bar", `
 		min-width: 100%;
 	}
 }
-
 `);

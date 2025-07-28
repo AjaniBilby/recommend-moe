@@ -16,7 +16,7 @@ import { prisma } from "~/db.server.ts";
 import { shell } from "../$.tsx";
 
 export async function loader({ request, url, cookie, headers }: RouteContext) {
-	headers.set("Cache-Control", "private");
+	headers.set("Cache-Control", "private, no-store");
 	const userID = await EnforcePermission(request, cookie);
 
 	const offset = SafeQueryInteger(url.searchParams, "o", 0);

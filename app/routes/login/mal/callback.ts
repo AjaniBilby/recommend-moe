@@ -12,7 +12,9 @@ import { EncodeSecret } from "~/util/secret.ts";
 import { TIME_SCALE } from "~/util/time.ts";
 import { prisma } from "~/db.server.ts";
 
-export async function loader({ request, url, cookie }: RouteContext) {
+export async function loader({ request, url, cookie, headers }: RouteContext) {
+	headers.set("Cache-Control", "private, no-store");
+
 	if (url.searchParams.get("state") !== cookie.get("state")) throw new Response("Invalid state parameter", MakeStatus("Bad Request"));
 
 	const code = url.searchParams.get("code");

@@ -30,7 +30,8 @@ export function loader() {
 }
 
 
-export async function action({ request, cookie }: RouteContext) {
+export async function action({ request, cookie, headers }: RouteContext) {
+	headers.set("Cache-Control", "private");
 	const userID = await EnforcePermission(request, cookie);
 	return MakeStream(request, { render: renderToString, userID, highWaterMark: 1000 }, Compute);
 }
