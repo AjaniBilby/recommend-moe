@@ -4,8 +4,9 @@ import { randomBytes } from 'crypto';
 import { redirect } from "htmx-router/response";
 
 import { StartChallenge } from "~/session.ts";
+import { CutString } from "~/util/format/text.ts";
 
-export function loader({ cookie, headers }: RouteContext) {
+export function loader({ request, cookie, headers }: RouteContext) {
 	headers.set("Cache-Control", "private, no-store");
 
 	const state = randomBytes(16).toString("hex");
@@ -21,9 +22,15 @@ export function loader({ cookie, headers }: RouteContext) {
 	to.searchParams.set("response_type", "code");
 	to.searchParams.set("client_id", CLIENT_ID);
 	to.searchParams.set("state", state);
-	// to.searchParams.set("redirect_uri", `https://localhost:8000/login/mal/callback`)
 	to.searchParams.set("code_challenge", challenge)
 	to.searchParams.set("code_challenge_method", "plain");
+	to.searchParams.set("redirect_uri", MakeURI(request));
 
 	return redirect(to.toString());
+}
+
+export function MakeURI(request: Request) {
+	const protocol = CutString(request.url, ":")[0];
+	const hostname = request.headers.get('host') || "localhost";
+	return protocol+"://"+hostname+"/login/mal/callback";
 }

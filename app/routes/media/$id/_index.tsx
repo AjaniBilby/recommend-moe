@@ -17,6 +17,12 @@ export async function loader({ params }: RouteContext<typeof parameters>) {
 	});
 	if (!media) return null;
 
+	const sources = await prisma.externalMedia.findMany({
+		select:  { type: true, id: true },
+		where:   { mediaID: params.id },
+		orderBy: { type: "asc" }
+	});
+
 	const histogram = await prisma.$queryRawTyped(GetMediaScoreHistogram(params.id));
 
 	return shell(<>
@@ -68,6 +74,12 @@ export async function loader({ params }: RouteContext<typeof parameters>) {
 					<div>Novelty</div>
 					<div className="text-muted">{(media.novelty*100).toFixed(2)}%</div>
 				</Open>}
+			</div>
+
+			<div>
+				{sources.map(s => <Link key={s.type} href={`https://myanimelist.net/anime/${s.id}`} target="_blank">
+					<button type="button">Source</button>
+				</Link>)}
 			</div>
 		</Container>
 

@@ -4,6 +4,7 @@ import { UpdateUserAffinity } from "@db/sql.ts";
 import { renderToString } from "react-dom/server";
 import { RouteContext } from "htmx-router";
 
+import { InsertExternalMedia } from "~/model/media.ts";
 import { EnforcePermission } from "~/model/permission.ts";
 
 import { Dialog } from "~/component/dialog.tsx";
@@ -59,15 +60,7 @@ async function Compute(stream: StreamResponse<true>, props: { userID: number }) 
 			rating.score /= 10; // re-scale
 
 			stream.send(".stage", "innerText", rating.title);
-			const index = await prisma.externalMedia.findUnique({
-				select: { mediaID: true },
-				where: { type: "MyAnimeList", id: String(rating.id) }
-			});
-			const mediaID = index?.mediaID;
-			if (!mediaID) {
-				console.log("missing index", rating.title);
-				continue;
-			}
+			const mediaID = await InsertExternalMedia("MyAnimeList", String(rating.id));
 
 			const batch = await prisma.userMediaScore.createMany({
 				data: [{ mediaID, userID, score: rating.score }],

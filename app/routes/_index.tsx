@@ -3,8 +3,14 @@ import { Container } from "~/component/container.tsx";
 
 import { GettingStarted } from "./getting-started.tsx";
 import { shell } from "./$.tsx";
+import { RouteContext } from "htmx-router";
+import { CutString } from "../util/format/text.ts";
 
-export function loader() {
+export function loader({ request }: RouteContext) {
+	const protocol = CutString(request.url, ":")[0];
+	const hostname = request.headers.get('host') || "localhost";
+	console.log(protocol+"://"+hostname);
+
 	return shell(<Container>
 		<h2>Getting Started</h2>
 		<LazyLoad href="/getting-started">

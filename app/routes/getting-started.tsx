@@ -42,7 +42,13 @@ export function GettingStarted(props: { progress: number }) {
 			<div>Login to your MyAnimeList account</div>
 			<Open href="/login"><button type="button">Login</button></Open>
 		</div>,
-		<div key={1}>Pull in your MAL scores&nbsp;&nbsp;<Link href="/list" className="muted text-mono rounded inline" hx-swap="innerHTML">!list</Link></div>,
-		<div key={2}>Get your recommendations&nbsp;&nbsp;<Link href="/list" className="muted text-mono rounded inline" hx-swap="innerHTML">!everything</Link></div>,
+		<div key={1}>
+			Pull in your MAL scores&nbsp;&nbsp;
+			<Link href="/list" className="muted text-mono rounded inline" hx-swap="innerHTML">!list</Link>
+		</div>,
+		<div key={2}>
+			Get your recommendations&nbsp;&nbsp;
+			<Link href="/everything" className="muted text-mono rounded inline" hx-swap="innerHTML">!everything</Link>
+		</div>,
 	]} progress={props.progress} style={{ paddingLeft: "10px" }} />
 }

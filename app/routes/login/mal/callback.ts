@@ -12,6 +12,8 @@ import { EncodeSecret } from "~/util/secret.ts";
 import { TIME_SCALE } from "~/util/time.ts";
 import { prisma } from "~/db.server.ts";
 
+import { MakeURI } from "./_index.ts";
+
 export async function loader({ request, url, cookie, headers }: RouteContext) {
 	headers.set("Cache-Control", "private, no-store");
 
@@ -23,13 +25,17 @@ export async function loader({ request, url, cookie, headers }: RouteContext) {
 	const challenge = GetChallenge(cookie)?.slice(0, 128);
 	if (!challenge) throw new Error("Timeout");
 
-	const tokens = await MakeToken(challenge, code);
+	const uri = MakeURI(request);
+	const tokens = await MakeToken(challenge, code, uri);
 	cookie.unset("state");
 
 	const expiry = new Date(Date.now() + tokens.expires_in * TIME_SCALE.second);
 	const user = await FetchUser(tokens);
 
 	const userID = await OnboardMalUser(user);
+
+	// clear old tokens (possibly externally invalidated)
+	await prisma.userAuthToken.deleteMany({ where: { type: "MyAnimeList", userID } });
 
 	await prisma.userAuthToken.create({ data: {
 		type: "MyAnimeList",
@@ -45,7 +51,7 @@ export async function loader({ request, url, cookie, headers }: RouteContext) {
 
 
 type Token = { token_type: "Bearer", expires_in: number, access_token: string, refresh_token: string };
-async function MakeToken(challenge: string, code: string): Promise<Token> {
+async function MakeToken(challenge: string, code: string, uri: string): Promise<Token> {
 	const client_id = process.env.MAL_CLIENT_ID;
 	if (!client_id) throw new Error("Client ID is not defined");
 	const client_secret = process.env.MAL_CLIENT_SECRET;
@@ -62,7 +68,8 @@ async function MakeToken(challenge: string, code: string): Promise<Token> {
 		body: new URLSearchParams({
 			grant_type: "authorization_code",
 			code: code,
-			code_verifier: challenge
+			code_verifier: challenge,
+			redirect_uri: uri
 		}),
 	});
 
