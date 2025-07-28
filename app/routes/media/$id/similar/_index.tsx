@@ -17,7 +17,7 @@ export async function loader({ params, url, headers }: RouteContext<typeof param
 
 	const compute = await ShouldCompute(params.id);
 	if (compute) {
-		headers.set("Cache-Control", "no-cache, no-store");
+		headers.set("Cache-Control", "private, no-cache, no-store");
 		return compute;
 	}
 
@@ -37,6 +37,13 @@ export function MediaSimilarity(props: { mediaID: number }) {
 async function Results(mediaID: number, offset: number, prev: number) {
 	const similar = await prisma.$queryRawTyped(GetSimilarMedia(mediaID, offset, 100));
 
+	if (similar.length === 0) {
+		if (offset === 0) return <div className="muted card" style={{ gridColumn: "1/-1", padding: "var(--radius)"}}>
+			This media does not have any scores in common with any other media
+		</div>;
+		return "";
+	}
+
 	const jsx = new Array<JSX.Element>();
 	for (const media of similar) {
 		const score = Math.floor((media.score || 0)*100);
@@ -51,9 +58,7 @@ async function Results(mediaID: number, offset: number, prev: number) {
 		jsx.push(<MediaCard media={media} />)
 	}
 
-	if (similar.length !== 0) jsx.push(
-		<MediaLoader href={`/media/${mediaID}/similar?o=${offset+similar.length}&p=${prev}`} />
-	);
+	jsx.push(<MediaLoader href={`/media/${mediaID}/similar?o=${offset+similar.length}&p=${prev}`} />);
 
 	return jsx;
 }

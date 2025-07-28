@@ -18,6 +18,13 @@ export function MediaCard(props: {
 				: `url(/media/${media.id}/cover)`
 		}}></div>
 		<div className="title on-hover-show text-center card">{media.title}</div>
+		{/* <div
+			className="on-hover-show text-center magenta affinity"
+			hx-trigger="revealed"
+			hx-target="this"
+			hx-get={`/media/${props.media.id}/affinity`}
+			hx-swap="innerHTML"
+		></div> */}
 		{props.children}
 	</Link>
 }
@@ -57,6 +64,16 @@ const style = new Style("media", `
 }
 .this.htmx-request .title {
 	bottom: calc(100% + 2px);
+}
+
+.this .affinity {
+	position: absolute;
+	padding: calc(var(--radius) / 2);
+}
+
+.this .affinity {
+	top: 0; right: 0;
+	border-radius: 0 0 0 var(--radius);
 }
 `);
 

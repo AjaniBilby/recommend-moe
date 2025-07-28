@@ -388,6 +388,10 @@ textarea {
 	background-color: hsl(var(--violet)) !important;
 	color: hsl(var(--violet-foreground)) !important;
 }
+.magenta {
+	background-color: hsl(var(--magenta)) !important;
+	color: hsl(var(--violet-foreground)) !important;
+}
 
 .text-muted   { color: hsl(var(--muted-foreground)) !important; }
 .text-zinc    { color: hsl(var(--zinc))    !important; }

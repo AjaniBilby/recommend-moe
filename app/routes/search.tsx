@@ -20,13 +20,15 @@ export async function loader({ url, headers }: RouteContext) {
 		if (command) return redirect(command, MakeStatus("Permanent Redirect"));
 	}
 
+	const results = await Search(query);
+
 	return shell(<div id="search-results" style={{
 		marginTop: "1em",
 		display: "grid",
 		gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
 		gap: "10px",
 	}}>
-		{await Search(query)}
+		{results.map(media => <MediaCard key={media.id} media={media} />)}
 	</div>, {
 		title: query ? `Search - ${query}` : "Search",
 		search: { value: query, focus: query === "" }
@@ -34,19 +36,15 @@ export async function loader({ url, headers }: RouteContext) {
 }
 
 
-async function Search(query: string) {
-	if (query === "") return "";
+async function Search(search: string) {
+	if (search === "") return [];
 
-	const results = await prisma.$queryRaw<{ id: number, title: string, icon: string }[]>`
+	return await prisma.$queryRaw<{ id: number, title: string, icon: string }[]>`
 		SELECT *
 		FROM "Media"
-		ORDER BY similarity("title", ${query}) desc
+		ORDER BY similarity("title", ${search}) desc
 		LIMIT 50
 	`;
-
-	return <>
-		{results.map(media => <MediaCard key={media.id} media={media} />)}
-	</>
 }
 
 
