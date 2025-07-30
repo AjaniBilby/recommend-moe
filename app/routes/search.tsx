@@ -18,7 +18,7 @@ export async function loader({ url }: RouteContext) {
 	const query = url.searchParams.get('q')?.toLowerCase().slice(0, 250) || "";
 	if (query === "" && url.searchParams.has("q")) return redirect("/", MakeStatus("Permanent Redirect"));
 
-	const semantic = url.searchParams.get('m')?.toString() === "s";
+	const semantic = url.searchParams.get("search-mode")?.toString() === "s";
 
 	if (query.startsWith("!")) {
 		const command = await Bangs(query.slice(1));
@@ -31,9 +31,9 @@ export async function loader({ url }: RouteContext) {
 
 		<Container style={{ marginTop: "1em" }}>
 			<form hx-trigger="change" hx-include="[name=q]" hx-swap="innerHTML transition:true">
-				<NamedSwitch name="m" options={[
-					{ name: "Semantic", value: "s" },
-					{ name: "Text",     value: "t" }
+				<NamedSwitch name="search-mode" options={[
+					{ name: "Semantic", value: "s", title: "Search based on English meaning" },
+					{ name: "Text",     value: "t", title: "Search based on text similarity" }
 				]} defaultValue={ semantic ? "s" : "t" } />
 			</form>
 		</Container>
@@ -42,6 +42,8 @@ export async function loader({ url }: RouteContext) {
 			marginTop: "1em",
 			display: "grid",
 			gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+			paddingInline: "15px",
+			paddingBottom: "80px",
 			gap: "10px",
 		}}>
 			{results.map(media => <MediaCard key={media.id} media={media} />)}

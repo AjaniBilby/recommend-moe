@@ -51,7 +51,7 @@ async function Compute(stream: StreamResponse<true>, props: { userID: number }) 
 
 	const access = DecodeSecret(token.access);
 
-	stream.send(".status", "innerText", "Updating scores from Mal");
+	stream.send(".status", "innerText", "Fetching scores from Mal");
 	const touched = new Set<number>();
 	for await (const chunk of Chunks(access)) {
 		for (const rating of chunk) {

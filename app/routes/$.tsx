@@ -109,7 +109,9 @@ export async function error(ctx: RouteContext, e: unknown) {
 			<Scripts />
 		</Head>
 		<body>
-			{header}
+			<div className={headerStyle.name}>
+				<div>{SearchBar()}{header}</div>
+			</div>
 
 			<div className="wrapper" style={{ display: "flex", height: "100%", justifyContent: "center", alignItems: "center" }}>
 				<div className="card" style={{
@@ -158,6 +160,7 @@ function SearchBar(search?: { value?: string, focus?: boolean }) {
 	return <form
 		className={searchStyle.name}
 		action="/search"
+		hx-include="[name=search-mode]"
 	>
 		<Link href="/" className="no-select">Recommend</Link>
 		<label>
