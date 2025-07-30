@@ -2,37 +2,29 @@ import { MakeStream, StreamResponse } from "hx-stream/dist/server";
 import { RankNoveltyInit } from "@db/sql.ts";
 import { renderToString } from "react-dom/server";
 import { RouteContext } from "htmx-router";
-import { ReactNode } from "react";
+
+import { EnforcePermission } from "~/model/permission.ts";
 
 import { prisma } from "~/db.server.ts";
 
-import { shell } from "~/routes/$.tsx";
-
-export function loader() {
-	return shell(<div hx-ext="hx-stream">
-		<form method="POST"
-			hx-post=""
-			hx-stream="on"
-			hx-trigger="submit"
-			hx-target="#output"
-		>
-			<button type="submit">Compute</button>
-		</form>
-
-		<div id="output"></div>
-
-	</div>, {});
-}
-
-
-export function action({ request, headers }: RouteContext) {
+export async function action({ request, cookie, headers }: RouteContext) {
 	headers.set("Cache-Control", "no-cache, no-store");
+	await EnforcePermission(request, cookie, "MEDIA_MODIFY");
 	return MakeStream(request, { render: renderToString, highWaterMark: 1000 }, Compute);
 }
 
 
 const scale = 1/1000;
 async function Compute(stream: StreamResponse<true>) {
+	await prisma.mediaRanking.deleteMany(); // clear any old values
+
+	stream.send("this", "innerHTML", <>
+		<div className="progress">
+			<progress style={{ width: "100%" }} max={100}></progress>
+		</div>
+		<div className="status"></div>
+	</>);
+
 	const start = Date.now();
 	let tally = 0;
 
@@ -41,10 +33,11 @@ async function Compute(stream: StreamResponse<true>) {
 	while (i < total) {
 		if (stream.readyState === StreamResponse.CLOSED) return;
 
-		{
+		if (i > 0) {
 			const rem = total - i;
 			const time = (Date.now() - start) / tally * rem;
-			stream.send("this", "innerHTML", <ComputeMessage>Calculating {i} of {total} (eta: {(time*scale).toFixed(2)} sec)</ComputeMessage>);
+			stream.send(".progress", "innerHTML", `<progress style="width: 100%" value="${i/total*100}" max="100" />`);
+			stream.send(".status", "innerText", `eta: ${(time*scale).toFixed(2)} sec`);
 		}
 		await prisma.$queryRawTyped(RankNoveltyInit());
 
@@ -56,13 +49,8 @@ async function Compute(stream: StreamResponse<true>) {
 	// remove any media with no connections
 	await prisma.mediaRanking.deleteMany({ where: { width: 0 } });
 
-	stream.send("this", "outerHTML", <ComputeMessage>Done</ComputeMessage>);
+	const time = (Date.now() - start);
+	stream.send(".progress", "innerHTML", `<progress style="width: 100%" value="${i/total*100}" max="100" />`);
+	stream.send(".status", "innerText", `Done! Taking ${(time*scale).toFixed(2)} sec`);
 	stream.close();
-}
-
-
-function ComputeMessage(props: { children: ReactNode }) {
-	return <div className="muted card" style={{ padding: "var(--radius)", display: "flex", alignItems: "center", gap: "10px" }}>
-		{props.children}
-	</div>;
 }

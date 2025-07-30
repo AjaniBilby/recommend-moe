@@ -22,7 +22,9 @@ export async function loader({ request, url, cookie, headers }: RouteContext) {
 	const offset = SafeQueryInteger(url.searchParams, "o", 0);
 	let prev = SafeQueryInteger(url.searchParams, "p", 100);
 
-	const media = await prisma.$queryRawTyped(GetMediaRecommendation(userID, offset, 100));
+	const novelty = Number(url.searchParams.get("novelty")) || 0;
+
+	const media = await prisma.$queryRawTyped(GetMediaRecommendation(userID, novelty, offset, 100));
 
 	const jsx = new Array<JSX.Element>();
 	for (const m of media) {
@@ -44,14 +46,24 @@ export async function loader({ request, url, cookie, headers }: RouteContext) {
 	}
 
 	if (media.length > 0) {
-		jsx.push(<MediaLoader href={`/everything?o=${offset + 100}`}/>);
+		jsx.push(<MediaLoader href={`/everything?o=${offset + 100}&novelty=${novelty}`}/>);
 	}
 
 	if (url.searchParams.has("o")) return jsx;
 
 	return shell(<>
-		<Container style={{ marginBlock: "1em", display: "flex" }}>
+		<Container style={{ marginBlock: "1em", display: "flex", alignItems: "center", gap: "20px" }}>
 			<div style={{ flexGrow: 1 }}></div>
+
+			<form hx-trigger="change" className="muted rounded" style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+				<b>Novelty</b>
+				<input type="range" name="novelty"
+					min="0" max="1" step="0.000001"
+					defaultValue={novelty}
+					style={{ paddingBlock: "0" }}
+				></input>
+			</form>
+
 			<Open href="/everything/index">
 				<IconButton icon={faArrowsRotate}/>
 			</Open>

@@ -2,47 +2,40 @@ import { RankNoveltyChunk, RankNoveltyStep, GetRankStatistics } from "@db/sql.ts
 import { MakeStream, StreamResponse } from "hx-stream/dist/server";
 import { renderToString } from "react-dom/server";
 import { RouteContext } from "htmx-router";
-import { ReactNode } from "react";
+
+import { EnforcePermission } from "~/model/permission.ts";
 
 import { prisma } from "~/db.server.ts";
 
-import { shell } from "~/routes/$.tsx";
-import { stat } from "node:fs";
-
-export function loader() {
-	return shell(<div hx-ext="hx-stream">
-		<form method="POST"
-			hx-post=""
-			hx-stream="on"
-			hx-trigger="submit"
-			hx-target="#output"
-		>
-			<button type="submit">Compute</button>
-		</form>
-
-		<div id="output"></div>
-
-	</div>, {});
-}
-
-
-export function action({ request, headers }: RouteContext) {
+export async function action({ request, cookie, headers }: RouteContext) {
 	headers.set("Cache-Control", "no-cache, no-store");
+	await EnforcePermission(request, cookie, "MEDIA_MODIFY");
 	return MakeStream(request, { render: renderToString, highWaterMark: 1000 }, Compute);
 }
 
 
 async function Compute(stream: StreamResponse<true>) {
+	stream.send("this", "innerHTML", <>
+		<div className="iteration">
+			<progress style={{ width: "100%" }} max={5}></progress>
+		</div>
+		<div className="progress">
+			<progress style={{ width: "100%" }} max={100}></progress>
+		</div>
+		<div className="status"></div>
+	</>);
+
 	let stats = await GetStats();
 	const batchSize = 20;
 
-	while (stats.iteration < 5) {
+	stream.send(".iteration", "innerHTML", `<progress style="width: 100%" value="${stats.iteration}" max="20" />`);
+
+	while (stats.iteration < 20) {
 		const media = await prisma.mediaRanking.findMany({
 			select: { id: true },
 			where:  { next: null }
 		});
 
-		console.time("batch");
 		for (let i=0; i<media.length; i+=batchSize) {
 			const queue = [];
 			const limit = Math.min(i + batchSize, media.length);
@@ -51,21 +44,27 @@ async function Compute(stream: StreamResponse<true>) {
 			await Promise.all(queue);
 
 			if (stream.readyState === StreamResponse.CLOSED) return;
-			stream.send("this", "innerHTML", <ComputeMessage>
-				{stats.iteration}: Calculating {i} of {media.length} (spread: {stats.range})
-			</ComputeMessage>);
-		}
-		console.timeEnd("batch");
 
-		const delta = await prisma.$queryRaw`SELECT SUM(ABS("next" - "weight")) FROM "MediaRanking" WHERE "next" is not null`;
+			stream.send(".progress", "innerHTML", `<progress style="width: 100%" value="${i/media.length*100}" max="100" />`);
+		}
+
+		const delta = await prisma.$queryRaw<[{ sum: number }]>`
+			SELECT SUM(ABS("next" - "weight")) FROM "MediaRanking" WHERE "next" is not null
+		`;
 		console.log(stats.iteration, delta[0].sum);
 
 		await prisma.$queryRawTyped(RankNoveltyStep());
 		stats = await GetStats();
+
+		stream.send(".iteration", "innerHTML", `<progress style="width: 100%" value="${stats.iteration}" max="5" />`);
+		stream.send(".status", "innerHTML",
+			`min: ${stats.min.toFixed(3)} `
+			+ `max: ${stats.max.toFixed(3)} `
+			+ `range: ${stats.range} `
+			+ `change: ${delta[0]?.sum}`
+		);
 	}
 
-
-	stream.send("this", "outerHTML", <ComputeMessage>Done</ComputeMessage>);
 	stream.close();
 }
 
@@ -77,11 +76,4 @@ async function GetStats() {
 		range: stats.range || 0,
 		iteration: stats.iteration || 0
 	};
-}
-
-
-function ComputeMessage(props: { children: ReactNode }) {
-	return <div className="muted card text-mono" style={{ padding: "var(--radius)", display: "flex", alignItems: "center", gap: "10px" }}>
-		{props.children}
-	</div>;
 }

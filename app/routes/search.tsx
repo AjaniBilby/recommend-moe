@@ -77,6 +77,7 @@ const commands = {
 	"quality"     : "/rank/score",
 	"everything"  : "/everything",
 	"list"        : "/list",
+	"admin"       : "/admin",
 }
 type Command = keyof typeof commands;
 const index = await Singleton("command-vectors", () => Vectorize(Object.keys(commands) as Command[]));

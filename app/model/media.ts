@@ -1,3 +1,4 @@
+import { FillMediaAffinity } from "@db/sql.ts";
 import { ExternalKind } from "@db/enums.ts";
 
 import * as Mal from "~/model/external/my-anime-list.ts";
@@ -46,6 +47,9 @@ export async function InsertExternalMedia(type: ExternalKind, id: string) {
 
 	await InsertTitles(mediaID, data.titles);
 	await IndexMedia(mediaID);
+
+	// Link with all other existing media
+	await prisma.$queryRawTyped(FillMediaAffinity(mediaID));
 
 	return mediaID;
 }
