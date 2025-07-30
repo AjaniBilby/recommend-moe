@@ -68,6 +68,7 @@ const commands = {
 	"me"          : "/me",
 	"rank"        : "/rank",
 	"novel"       : "/rank/novel",
+	"novelty"     : "/rank/novel",
 	"original"    : "/rank/novel",
 	"unique"      : "/rank/novel",
 	"common"      : "/rank/novel?asc",
@@ -76,6 +77,7 @@ const commands = {
 	"score"       : "/rank/score",
 	"quality"     : "/rank/score",
 	"everything"  : "/everything",
+	"shiny"       : "/shiny",
 	"list"        : "/list",
 	"admin"       : "/admin",
 }

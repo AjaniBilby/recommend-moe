@@ -58,7 +58,7 @@ export async function loader({ request, url, cookie, headers }: RouteContext) {
 			<form hx-trigger="change" className="muted rounded" style={{ display: "flex", gap: "10px", alignItems: "center" }}>
 				<b>Novelty</b>
 				<input type="range" name="novelty"
-					min="0" max="1" step="0.000001"
+					min="0" max="1" step="any"
 					defaultValue={novelty}
 					style={{ paddingBlock: "0" }}
 				></input>

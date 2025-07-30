@@ -8,5 +8,5 @@ INNER JOIN "Media" m ON m."id" = s."mediaID"
 WHERE "userID" = $1::int and s."score" is null
 	and ($2::float = 0 OR $2::float <= m."novelty")
 ORDER BY s."affinity" desc
-LIMIT $4
+LIMIT $4::int
 OFFSET $3::int

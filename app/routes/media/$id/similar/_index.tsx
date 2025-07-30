@@ -39,7 +39,7 @@ async function Results(mediaID: number, offset: number, prev: number) {
 
 	if (similar.length === 0) {
 		if (offset === 0) return <div className="muted card" style={{ gridColumn: "1/-1", padding: "var(--radius)"}}>
-			This media does not have any scores in common with any other media
+			This media does not have enough scores in common with other media
 		</div>;
 		return "";
 	}
