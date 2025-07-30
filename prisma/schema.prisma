@@ -1,17 +1,17 @@
-datasource db {
-  provider   = "postgresql"
-  url        = env("DATABASE_URL")
-  extensions = [pg_trgm, citext]
-}
-
 generator client {
-	provider = "prisma-client"
-	output = "../build/prisma"
-	previewFeatures = ["queryCompiler", "driverAdapters", "fullTextSearchPostgres", "relationJoins", "postgresqlExtensions", "typedSql", "postgresqlExtensions"]
-	runtime = "deno"
+  provider        = "prisma-client"
+  output          = "../build/prisma"
+  previewFeatures = ["driverAdapters", "fullTextSearchPostgres", "postgresqlExtensions", "queryCompiler", "relationJoins", "typedSql"]
+  runtime         = "deno"
 }
 
 generator json {
-	provider = "prisma-json-types-generator"
-	namespace = "PrismaJson"
+  provider  = "prisma-json-types-generator"
+  namespace = "PrismaJson"
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [citext, pg_trgm]
 }

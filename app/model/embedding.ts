@@ -27,6 +27,17 @@ export async function Vectorize<T extends string[]>(strings: T): Promise<Map<T[n
 	return map as Map<T[number], Float32Array>;
 }
 
+export async function MakeEmbeddings(targets: { key: string, value: string }[]): Promise<{ key: string, embedding: Float32Array }[]> {
+	const batch = await extractor(targets.map(x => x.value), { pooling: 'mean', normalize: true });
+	if (!(batch.data instanceof Float32Array)) throw new Error("Invalid encoding given from embedding");
+	if (batch.dims[1] !== WIDTH) throw new Error("Embedding gave incorrectly dimensioned vector");
+
+	return targets.map((t, i) => ({
+		key: t.key,
+		embedding: batch.data.slice(i*WIDTH, (i+1)*WIDTH) as Float32Array
+	}));
+}
+
 export async function Vector(string: string): Promise<Float32Array> {
 	const batch = await extractor([string], { pooling: 'mean', normalize: true });
 	if (!(batch.data instanceof Float32Array)) throw new Error("Invalid encoding given from embedding");

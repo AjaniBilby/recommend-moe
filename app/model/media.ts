@@ -1,12 +1,12 @@
 import { ExternalKind } from "@db/enums.ts";
 
 import * as Mal from "~/model/external/my-anime-list.ts";
-import { Vectorize } from "~/model/embedding.ts";
+import { MakeEmbeddings } from "~/model/embedding.ts";
 
 import { DecodeSecret } from "~/util/secret.ts";
 import { prisma } from "~/db.server.ts";
 
-export async function ReIndexMedia(mediaID: number) {
+export async function ReFetchMedia(mediaID: number) {
 	const external = await prisma.externalMedia.findFirst({
 		select: { id: true },
 		where:  { mediaID, type: "MyAnimeList" }
@@ -20,7 +20,8 @@ export async function ReIndexMedia(mediaID: number) {
 		where: { id: mediaID },
 		data: { title: data.title, description: data.description, icon: data.icon }
 	});
-	await IndexTitles(mediaID, data.titles);
+	await InsertTitles(mediaID, data.titles);
+	await IndexMedia(mediaID);
 }
 
 
@@ -43,7 +44,8 @@ export async function InsertExternalMedia(type: ExternalKind, id: string) {
 		return slot.id;
 	});
 
-	await IndexTitles(mediaID, data.titles);
+	await InsertTitles(mediaID, data.titles);
+	await IndexMedia(mediaID);
 
 	return mediaID;
 }
@@ -68,39 +70,44 @@ async function GetSource(type: ExternalKind, externID: string) {
 	}
 }
 
-async function IndexTitles(mediaID: number, titles: { type: string, title: string }[]) {
-	const existing = await prisma.mediaTitle.findMany({
+
+async function InsertTitles(mediaID: number, titles: { type: string, title: string }[]) {
+	const created = await prisma.mediaTitle.createManyAndReturn({
+		select: { type: true },
+		data: titles.map(t => ({...t, mediaID })),
+		skipDuplicates: true
+	});
+
+	for (const { type, title } of titles) {
+		if (created.some(x => x.type === type)) continue;
+
+		await prisma.mediaTitle.update({
+			select: { mediaID: true },
+			where: { mediaID_type: { mediaID, type }},
+			data:  { title }
+		});
+	}
+}
+
+
+export async function IndexMedia(mediaID: number) {
+	const { description } = await prisma.media.findUniqueOrThrow({
+		select: { description: true },
+		where: { id: mediaID }
+	})
+	const targets = await prisma.mediaTitle.findMany({
 		select: { type: true, title: true },
 		where:  { mediaID }
 	});
+	targets.push({ type: "Description", title: description });
+	const embeddings = await MakeEmbeddings(targets.map(x => ({ key: x.type, value: x.title })));
 
-	const set: string[] = [];
-	for (const data of titles) {
-		if (set.includes(data.title)) continue;
-		if (existing.some(x => x.title === data.title)) continue;
-		set.push(data.title);
-	}
-
-	const vectors = await Vectorize(set);
-
-	for (const { type, title } of titles) {
-		const i = set.indexOf(title);
-		if (i === -1) continue;
-
-		const embedding = vectors.get(title);
-		if (!(embedding instanceof Float32Array)) throw new Error("Invalid encoding");
-
-		const vector = Array.from(embedding);
-		const exists = existing.some(x => x.type === type);
-
-		const batch = exists
-			? await prisma.$executeRaw`
-				UPDATE "MediaTitle"
-				SET "title" = ${title}::text,
-					"embedding" = ${vector}::float[]::vector(384)
-				WHERE "mediaID" = ${mediaID}::int and "type" = ${type}`
-			: await prisma.$executeRaw`
-				INSERT INTO "MediaTitle" ("mediaID", "type", "title", "embedding")
-				SELECT ${mediaID}::int, ${type}::text, ${title}::text, ${vector}::float[]::vector(384)`;
-	}
+	await prisma.$transaction(async (tx) => {
+		await tx.mediaEmbedding.deleteMany({ where: { mediaID }});
+		for (const target of embeddings) await tx.$executeRaw`
+			INSERT INTO "MediaEmbedding" ("mediaID", "type", "embedding")
+			SELECT ${mediaID}::int, ${target.key}::text, ${[...target.embedding]}::float[]::vector(384)
+			ON CONFLICT DO NOTHING
+		`;
+	});
 }

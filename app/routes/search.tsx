@@ -1,9 +1,12 @@
+import { SearchMediaSemantic, SearchMediaTrigram } from "@db/sql.ts";
 import { RouteContext } from "htmx-router";
 import { MakeStatus } from "htmx-router/status";
 import { redirect } from "htmx-router/response";
 
 import { Vector, Vectorize } from "~/model/embedding.ts";
 
+import { NamedSwitch } from "~/component/input/switch.tsx";
+import { Container } from "~/component/container.tsx";
 import { MediaCard } from "~/component/media.tsx";
 
 import { Float32ArrayDot } from "~/util/math.ts";
@@ -11,40 +14,51 @@ import { Singleton } from "~/util/singleton.ts";
 import { prisma } from "~/db.server.ts";
 import { shell } from "~/routes/$.tsx";
 
-export async function loader({ url, headers }: RouteContext) {
+export async function loader({ url }: RouteContext) {
 	const query = url.searchParams.get('q')?.toLowerCase().slice(0, 250) || "";
 	if (query === "" && url.searchParams.has("q")) return redirect("/", MakeStatus("Permanent Redirect"));
+
+	const semantic = url.searchParams.get('m')?.toString() === "s";
 
 	if (query.startsWith("!")) {
 		const command = await Bangs(query.slice(1));
 		if (command) return redirect(command, MakeStatus("Permanent Redirect"));
 	}
 
-	const results = await Search(query);
+	const results = await Search(query, semantic);
 
-	return shell(<div id="search-results" style={{
-		marginTop: "1em",
-		display: "grid",
-		gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-		gap: "10px",
-	}}>
-		{results.map(media => <MediaCard key={media.id} media={media} />)}
-	</div>, {
+	return shell(<>
+
+		<Container style={{ marginTop: "1em" }}>
+			<form hx-trigger="change" hx-include="[name=q]" hx-swap="innerHTML transition:true">
+				<NamedSwitch name="m" options={[
+					{ name: "Semantic", value: "s" },
+					{ name: "Text",     value: "t" }
+				]} defaultValue={ semantic ? "s" : "t" } />
+			</form>
+		</Container>
+
+		<div id="search-results" style={{
+			marginTop: "1em",
+			display: "grid",
+			gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+			gap: "10px",
+		}}>
+			{results.map(media => <MediaCard key={media.id} media={media} />)}
+		</div>
+	</>, {
 		title: query ? `Search - ${query}` : "Search",
 		search: { value: query, focus: query === "" }
 	});
 }
 
 
-async function Search(search: string) {
+async function Search(search: string, semantic = true) {
 	if (search === "") return [];
 
-	return await prisma.$queryRaw<{ id: number, title: string, icon: string }[]>`
-		SELECT *
-		FROM "Media"
-		ORDER BY similarity("title", ${search}) desc
-		LIMIT 50
-	`;
+	if (semantic) return await prisma.$queryRawTyped(SearchMediaSemantic([...await Vector(search)]));
+
+	return await prisma.$queryRawTyped(SearchMediaTrigram(search));
 }
 
 

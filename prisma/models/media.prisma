@@ -33,7 +33,8 @@ model Media {
 
 	calculation MediaRanking? @ignore
 
-	titles MediaTitle[]
+	embeddings MediaEmbedding[]
+	titles     MediaTitle[]
 }
 
 model MediaTitle {
@@ -45,9 +46,18 @@ model MediaTitle {
 	@@unique([mediaID, type])
 
 	title String @db.Citext()
-	embedding Unsupported("vector(384)")
 
 	@@index([title(ops: raw("gin_trgm_ops"))], type: Gin, name: "MediaTitle_title_trgm_idx")
+}
+
+model MediaEmbedding {
+	type String @db.Citext() // non-case sensitive
+
+	mediaID Int
+	media   Media @relation(fields: [mediaID], references: [id], onUpdate: Cascade, onDelete: Cascade)
+	@@unique([mediaID, type])
+
+	embedding Unsupported("vector(384)")
 
 	// @@index([embedding(ops: raw("vector_cosine_ops"))], type: Hnsw, name: "MeditaTitle_embedding_vec_idx");
 	@@index([embedding])

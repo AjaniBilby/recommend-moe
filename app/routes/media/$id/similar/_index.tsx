@@ -11,7 +11,7 @@ import { prisma } from "~/db.server.ts";
 export const parameters = { id: Number };
 export async function loader({ params, url, headers }: RouteContext<typeof parameters>) {
 	const offset = SafeQueryInteger(url.searchParams, "o", 0);
-	const prev = SafeQueryInteger(url.searchParams, "p", 100);
+	const prev   = SafeQueryInteger(url.searchParams, "p", 100);
 
 	if (offset !== 0) return await Results(params.id, offset, prev);
 
