@@ -35,7 +35,7 @@ export function AlignDownInteger(x: number, multiple: number) {
 }
 
 
-export function Float32ArrayDot(a: Float32Array, b: Float32Array) {
+export function Float32ArrayDot(a: Float32Array | number[], b: Float32Array | number[]) {
 	if (a.length !== b.length) throw new Error("Arrays must have the same length for dot product");
 
 	let sum = 0;

@@ -313,6 +313,10 @@ textarea {
 	max-width: min(90vw, 800px);
 }
 
+.default {
+	background-color: hsl(var(--background));
+	color: hsl(var(--foreground)) !important;
+}
 .primary {
 	background-color: hsl(var(--primary));
 	color: hsl(var(--primary-foreground)) !important;

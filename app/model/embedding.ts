@@ -5,7 +5,7 @@ import { Singleton } from "~/util/singleton.ts";
 const extractor = await Singleton("vector-embedding", () => pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2'));
 
 const WIDTH = 384;
-export async function Vectorize<T extends string[]>(strings: T): Promise<Map<T[number], Float32Array>> {
+export async function Vectorize<T extends readonly string[]>(strings: T): Promise<Map<T[number], Float32Array>> {
 	const index = new Map<string, number>();
 	const input = [];
 	for (const s of strings) {
