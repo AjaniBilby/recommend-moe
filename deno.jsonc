@@ -13,8 +13,6 @@
 		"prisma:migrate:dev": "deno task prisma generate migrate dev",
 
 		"build": "deno task 'build:*'",
-		"build:htmx": "deno run -A npm:htmx-router",
-		"build:prisma": "deno task prisma generate --sql",
 		"build:client": "deno run -A npm:vite build",
 		"build:server": "deno run -A npm:vite build --ssr app/entry.server.ts --outDir build/server",
 

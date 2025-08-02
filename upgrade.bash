@@ -13,8 +13,11 @@ if [[ ":$PATH:" != *":$NVM_DIR/versions/node/"* ]]; then
 	export PATH="$NVM_DIR/versions/node/$(nvm current)/bin:$PATH"
 fi
 
-echo ""echo "Updating dependencies"
-npm ci
+echo "Updating dependencies"
+deno install
+
+echo "Building static assets"
+deno task build
 
 echo ""
 echo "Migrate Database"
@@ -22,11 +25,7 @@ npx prisma migrate deploy
 
 echo ""
 echo "Building DB Connector"
-npx prisma generate --sql
-
-echo ""
-echo "Rebuilding"
-npm run build
+eno task prisma generate --sql
 
 git rev-parse HEAD > "COMMIT"
 

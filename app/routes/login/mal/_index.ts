@@ -1,6 +1,6 @@
 import process from "node:process";
 import { RouteContext } from "htmx-router";
-import { randomBytes } from 'crypto';
+import { randomBytes } from "node:crypto";
 import { redirect } from "htmx-router/response";
 
 import { StartChallenge } from "~/session.ts";

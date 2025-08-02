@@ -1,5 +1,5 @@
 import { Cookies, CookieOptions } from "htmx-router/cookies";
-import { randomBytes } from 'crypto';
+import { randomBytes } from "node:crypto";
 import { Buffer } from "node:buffer";
 
 import { EncodeSecret, DecodeSecret } from "~/util/secret.ts";
