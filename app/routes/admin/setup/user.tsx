@@ -70,11 +70,10 @@ async function ProcessCsv(stream: StreamResponse<true>, props: { csv: CsvStream 
 			skipDuplicates: true
 		});
 
-		stream.send(".output", "innerText", `Inserting ${username}`);
+		if (users % 16 === 0) stream.send(".output", "innerText", `Inserting ${username}`);
 		users++;
 		batch = [];
 		inserts += query.count;
-		console.log(users, inserts);
 	}
 
 	for await (const row of props.csv) {
