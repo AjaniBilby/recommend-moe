@@ -18,7 +18,7 @@
 
 		"compile": "deno compile -A production.ts --include build/* --include public/*",
 
-		"preview": "NODE_ENV=production deno serve -A --env-file server.ts",
+		"preview": "deno serve -A --env-file server.production.ts",
 		"dev": "deno serve -A --env-file server.dev.ts"
 	},
 	"exclude": [ "./build/" ],
