@@ -4,7 +4,7 @@ import { renderToString } from 'react-dom/server';
 
 import { ServeStatic, StaticResponse } from "~/server/static.ts";
 
-ServeStatic("build/server/dist/asset", "/build/asset");
+ServeStatic("build/server/build/asset", "/build/asset");
 ServeStatic("build/client");
 ServeStatic("public");
 
