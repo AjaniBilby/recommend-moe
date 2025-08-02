@@ -30,7 +30,8 @@ export function loader({ request, cookie, headers }: RouteContext) {
 }
 
 export function MakeURI(request: Request) {
-	const protocol = CutString(request.url, ":")[0];
 	const hostname = request.headers.get('host') || "localhost";
+	const protocol = hostname === "localhost" ? "http" : "https";
+
 	return protocol+"://"+hostname+"/login/mal/callback";
 }

@@ -162,6 +162,28 @@ server {
     proxy_buffering off;
   }
 }
+
+server {
+  listen 443 ssl;
+  server_name skybase.link;
+  client_max_body_size 0; # No limit on upload size through Nginx
+  include snippets/error_pages.conf;
+
+  ssl_certificate /etc/nginx/ssl/self-signed.crt;
+  ssl_certificate_key  /etc/nginx/ssl/self-signed.key;
+
+  location / {
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_pass http://127.0.0.1:3000;
+    proxy_redirect off;
+
+    proxy_request_buffering off;
+    proxy_buffering off;
+  }
+}
 ```
 
 Enable the new site
