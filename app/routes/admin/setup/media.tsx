@@ -41,10 +41,16 @@ async function ProcessCsv(stream: StreamResponse<true>, props: { csv: CsvStream 
 	stream.send(".output", "innerHTML", <div>collecting...</div>);
 
 	const targets = new Set<number>();
+	let stale = 0;
 	for await (const { anime_id } of props.csv) {
 		const id = Number(anime_id);
 		if (isNaN(id) || id < 0) continue;
 		targets.add(id);
+		stale++;
+		if (stale > 100) {
+			stream.send(".output", "innerHTML", <div>collecting {targets.size}...</div>);
+			stale = 0;
+		}
 	}
 
 	console.log(targets);
