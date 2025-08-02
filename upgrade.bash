@@ -25,7 +25,7 @@ npx prisma migrate deploy
 
 echo ""
 echo "Building DB Connector"
-eno task prisma generate --sql
+deno task prisma generate --sql
 
 git rev-parse HEAD > "COMMIT"
 
