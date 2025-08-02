@@ -34,8 +34,9 @@ export default {
 			if (res !== null) return await res;
 		}
 
-		const origin = req.headers.get("Cf-Connecting-IP");
-		if (origin) req.headers.set("X-Real-IP", origin);
+		// deno headers are immutable
+		// const origin = req.headers.get("Cf-Connecting-IP");
+		// if (origin) req.headers.set("X-Real-IP", origin);
 
 		const start = Date.now();
 		const res = await htmx.resolve(req, true);
