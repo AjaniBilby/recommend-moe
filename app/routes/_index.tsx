@@ -1,12 +1,10 @@
-import { RouteContext } from "htmx-router";
-
 import { LazyLoad, Link } from "~/component/link.tsx";
 import { Container } from "~/component/container.tsx";
 
 import { GettingStarted } from "./getting-started.tsx";
 import { shell } from "./$.tsx";
 
-export function loader({ request }: RouteContext) {
+export function loader() {
 	return shell(<Container>
 		<h2>Getting Started</h2>
 		<LazyLoad href="/getting-started">

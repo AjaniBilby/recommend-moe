@@ -4,32 +4,17 @@ import { renderToString } from 'react-dom/server';
 
 import { ServeStatic, StaticResponse } from "~/server/static.ts";
 
-const isProduction = Deno.env.get("NODE_ENV") === "production";
-const viteDevServer = isProduction
-	? null
-	: await import("vite").then((vite) =>
-			vite.createServer({
-				server: { middlewareMode: true },
-				appType: 'custom'
-			})
-		);
-
-if (!viteDevServer) {
-	ServeStatic("build/server/dist/asset", "/build/asset");
-	ServeStatic("build/client");
-}
-
+ServeStatic("build/server/dist/asset", "/build/asset");
+ServeStatic("build/client");
 ServeStatic("public");
 
 
-const build = viteDevServer
-	? () => viteDevServer.ssrLoadModule("./app/entry.server.ts")
-	: await import("./build/server/entry.server.js") as any;
+const build = await import("./build/server/entry.server.js") as any;
 
 const htmx = createHtmxServer({
-	build, viteDevServer,
+	build, viteDevServer: null,
 	render: (res, headers) => {
-		if (isProduction) headers.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
+		headers.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
 		headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
 		headers.set("Content-Type", "text/html; charset=UTF-8");
 		headers.set("X-Content-Type-Options", "nosniff");
@@ -52,16 +37,6 @@ export default {
 	}
 } satisfies Deno.ServeDefaultExport
 
-
-// Reload pages on file change
-if (viteDevServer) {
-	const focus = path.resolve("./app");
-	viteDevServer.watcher.on('change', (file) => {
-		if (!file.startsWith(focus)) return;
-		console.info('Triggering full page reload');
-		viteDevServer.ws.send({ type: 'full-reload' });
-	});
-}
 
 // Deno.addSignalListener("SIGINT", shutdown);
 // Deno.addSignalListener("SIGTERM", shutdown);

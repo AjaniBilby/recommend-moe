@@ -1,8 +1,8 @@
 import { pipeline } from '@huggingface/transformers';
 
-import { Singleton } from "~/util/singleton.ts";
-
-const extractor = await Singleton("vector-embedding", () => pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2'));
+const extractor = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2', {
+	dtype: "fp32"
+});
 
 const WIDTH = 384;
 export async function Vectorize<T extends readonly string[]>(strings: T): Promise<Map<T[number], Float32Array>> {

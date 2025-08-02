@@ -15,10 +15,12 @@
 
 		"build": "deno task 'build:*'",
 		"build:client": "deno run -A npm:vite build",
-		"build:server": "deno run -A npm:vite build --ssr app/entry.server.ts --outDir dist/server",
+		"build:server": "deno run -A npm:vite build --ssr app/entry.server.ts --outDir build/server",
+
+		"compile": "deno compile -A production.ts --include build/* --include public/*",
 
 		"preview": "NODE_ENV=production deno serve -A --env-file server.ts",
-		"dev": "deno serve -A --env-file server.ts"
+		"dev": "deno serve -A --env-file dev.ts"
 	},
 	"exclude": [ "./build/" ],
 	"compilerOptions": {
