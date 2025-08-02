@@ -2,6 +2,7 @@ import { Cookies } from "htmx-router/cookies";
 
 import { GetSessionAuth, RefreshSession } from "~/session.ts";
 import { prisma } from "~/db.server.ts";
+import { ExternalKind } from "@db/enums.ts";
 
 export async function GetUserID(request: Request, cookies: Cookies): Promise<number | null> {
 	const session = GetSessionAuth(request, cookies);
@@ -22,6 +23,23 @@ export async function GetUserID(request: Request, cookies: Cookies): Promise<num
 	RefreshSession(found.prefix, found.expiry).catch(console.error);
 
 	return found.userID;
+}
+
+export async function InsertExternalUser(type: ExternalKind, id: string) {
+	const external = await prisma.externalUser.findFirst({
+		select: { userID: true },
+		where:  { id, type }
+	});
+	if (external) return external.userID;
+
+	const userID = await prisma.$transaction(async (tx) => {
+		const slot = await tx.user.create({ data: {}});
+		await tx.externalUser.create({ data: { userID: slot.id, type, id }})
+
+		return slot.id;
+	});
+
+	return userID;
 }
 
 

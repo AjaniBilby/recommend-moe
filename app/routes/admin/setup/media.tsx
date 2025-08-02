@@ -53,7 +53,6 @@ async function ProcessCsv(stream: StreamResponse<true>, props: { csv: CsvStream 
 		}
 	}
 
-	console.log(targets);
 	stream.send(".output", "innerHTML", <progress style={{ width: "100%" }} max={100}></progress>);
 
 	let i = 0;

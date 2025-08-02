@@ -40,7 +40,7 @@ export function GettingStarted(props: { progress: number }) {
 	return <Steps steps={[
 		<div key={0} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
 			<div>Login to your MyAnimeList account</div>
-			<Open href="/login"><button type="button">Login</button></Open>
+			<Open href="/login"><button type="button" className={props.progress > 0 ? "secondary" : undefined}>Login</button></Open>
 		</div>,
 		<div key={1}>
 			Pull in your MAL scores&nbsp;&nbsp;
