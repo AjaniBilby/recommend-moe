@@ -61,8 +61,8 @@ async function ProcessCsv(stream: StreamResponse<true>, props: { csv: CsvStream 
 			await InsertExternalMedia("MyAnimeList", String(id));
 		} catch (e) { console.error(e); }
 
-		stream.send(".output", "innerHTML", `<progress style="width: 100%" value="${i/targets.size*100}" max="100" />`);
 		i++;
+		stream.send(".output", "innerHTML", `<progress style="width: 100%" value="${i/targets.size*100}" max="100" />`);
 	}
 
 

@@ -10,7 +10,7 @@ import { shell } from "./$.tsx";
 
 export async function loader({ url }: RouteContext) {
 	const offset = SafeQueryInteger(url.searchParams, "o", 0);
-	let prev = SafeQueryInteger(url.searchParams, "p", 100);
+	let prev = SafeQueryInteger(url.searchParams, "p", 101);
 
 	const media = await prisma.media.findMany({
 		select: { id: true, title: true, icon: true, score: true, scoreRank: true },

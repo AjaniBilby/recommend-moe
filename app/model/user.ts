@@ -1,8 +1,8 @@
+import { ExternalKind } from "@db/enums.ts";
 import { Cookies } from "htmx-router/cookies";
 
 import { GetSessionAuth, RefreshSession } from "~/session.ts";
 import { prisma } from "~/db.server.ts";
-import { ExternalKind } from "@db/enums.ts";
 
 export async function GetUserID(request: Request, cookies: Cookies): Promise<number | null> {
 	const session = GetSessionAuth(request, cookies);
