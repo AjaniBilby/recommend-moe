@@ -44,6 +44,7 @@ async function ProcessCsv(stream: StreamResponse<true>, props: { csv: CsvStream 
 	let count = 0;
 	for await (const { anime_id } of props.csv) {
 		let mediaID = mediaMap.get(anime_id);
+		console.log("  fetch", anime_id, mediaID ? "hit" : "miss");
 		if (!mediaID) {
 			try {
 				mediaID = await InsertExternalMedia("MyAnimeList", anime_id);
