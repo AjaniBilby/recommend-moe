@@ -15,8 +15,8 @@ const viteDevServer = isProduction
 		);
 
 if (!viteDevServer) {
-	ServeStatic("dist/server/dist/asset", "/dist/asset");
-	ServeStatic("dist/client");
+	ServeStatic("build/server/dist/asset", "/build/asset");
+	ServeStatic("build/client");
 }
 
 ServeStatic("public");
@@ -24,7 +24,7 @@ ServeStatic("public");
 
 const build = viteDevServer
 	? () => viteDevServer.ssrLoadModule("./app/entry.server.ts")
-	: await import("./dist/server/entry.server.js");
+	: await import("./build/server/entry.server.js") as any;
 
 const htmx = createHtmxServer({
 	build, viteDevServer,

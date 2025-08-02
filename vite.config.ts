@@ -1,7 +1,7 @@
 import { BundleSplitter, ClientIsland } from "htmx-router/vite";
 import { defineConfig, UserConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
-import deno from "@deno/vite-plugin";
+// import deno from "@deno/vite-plugin";
 
 type T = NonNullable<UserConfig["plugins"]>[number];
 
@@ -14,8 +14,8 @@ export default defineConfig({
 		rollupOptions: {
 			input: 'app/entry.client.ts'
 		},
-		outDir: 'dist/client',
-		assetsDir: 'dist/asset',
+		outDir: 'build/client',
+		assetsDir: 'build/asset',
 		ssrEmitAssets: true,
 		manifest: true
 	},
@@ -23,16 +23,6 @@ export default defineConfig({
 		ClientIsland("react") as T,
 		BundleSplitter() as T,
 		tsconfigPaths(),
-		deno()
-	],
-	server: {
-		headers: {
-			"Service-Worker-Allowed": "/",
-		},
-	},
-	preview: {
-		headers: {
-			"Service-Worker-Allowed": "/",
-		},
-	},
+		// deno()
+	]
 });

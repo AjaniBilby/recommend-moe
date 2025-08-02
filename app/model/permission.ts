@@ -9,7 +9,6 @@ import { GetUserID } from "~/model/user.ts";
 
 import { GetSessionAuth, RefreshSession } from "~/session.ts";
 import { CompareSortedSets } from "~/util/math.ts";
-import { IsLetterMatching } from "~/util";
 import { prisma } from "~/db.server.ts";
 
 export const PERMISSION_DESCRIPTION: Record<Permission, string> = {
@@ -46,18 +45,6 @@ export async function GetPermissions(userID: User['id'] | null): Promise<Permiss
 	const raw = await prisma.$queryRawTyped(GetUserPermissions(userID));
 
 	return raw.map(x => x.permission) as Permission[];
-}
-
-export async function SearchEntityPermissions(target: PermissionEntityTarget, query: string) {
-	const existing = await GetEntityPermissions(target);
-	if (!query && existing.length > 0) return existing.map(p => ({ permission: p, existing: true }));
-
-	const keys = Object.keys(Permission) as Permission[];
-	return keys.filter(p => IsLetterMatching(p, query.toUpperCase()))
-		.map(p => ({
-			permission: p,
-			existing: existing.some(e => e === p)
-		}));
 }
 
 
