@@ -1,4 +1,4 @@
-import "./manifest.tsx";
+import Client from "./manifest.tsx";
 import "~/client/request.ts";
 
 // deno-lint-ignore no-explicit-any
@@ -16,6 +16,8 @@ document.body.addEventListener('htmx:beforeOnLoad', function (e) {
 	evt.detail.shouldSwap = true;
 	evt.detail.isError = false;
 });
+
+console.log("linked", Object.keys(Client));
 
 // vite complains if the client entry doesn't have a default export
 export default {};

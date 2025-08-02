@@ -2,8 +2,8 @@ import * as path from "node:path";
 import { createHtmxServer } from 'htmx-router/server.js';
 import { renderToString } from 'react-dom/server';
 
+import * as vite from "vite";
 import { ServeStatic, StaticResponse } from "~/server/static.ts";
-import vite from "vite";
 
 const viteDevServer = await vite.createServer({
 	server: { middlewareMode: true },

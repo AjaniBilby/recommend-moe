@@ -14,6 +14,7 @@ export function loader() {
 		>
 			<button type="submit" className="secondary">Import</button>
 			<div id="setup-media">
+				<input type="file" name="file"></input>
 			</div>
 		</form>
 
@@ -28,18 +29,6 @@ export function loader() {
 				<input type="file" name="file"></input>
 			</div>
 		</form>
-
-		<h2>Scores</h2>
-		<div style={gridStyle}>
-			<button type="button" className="secondary"
-				hx-post="/admin/setup/score"
-				hx-ext="hx-stream"
-				hx-swap="innerHTML"
-				hx-stream="on"
-				hx-target="#setup-score"
-			>Import</button>
-			<div id="setup-score"></div>
-		</div>
 	</Container>, { search: { value: "!admin"}});
 }
 

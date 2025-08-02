@@ -2,6 +2,7 @@ import { createHtmxServer } from 'htmx-router/server.js';
 import { renderToString } from 'react-dom/server';
 
 import { ServeStatic, StaticResponse } from "~/server/static.ts";
+import { CutString } from "~/util/format/text.ts";
 
 process.env.NODE_ENV = "production";
 
@@ -33,7 +34,15 @@ export default {
 			if (res !== null) return await res;
 		}
 
+		const origin = req.headers.get("Cf-Connecting-IP");
+		if (origin) req.headers.set("X-Real-IP", origin);
+
+		const start = Date.now();
 		const res = await htmx.resolve(req, true);
+		const end = Date.now();
+
+		console.log(`${req.method} /${CutString(req.url, "/", 3)[1]} ${res.status} - ${end-start}ms`);
+
 		return res;
 	}
 } satisfies Deno.ServeDefaultExport
