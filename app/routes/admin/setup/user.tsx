@@ -48,7 +48,6 @@ async function ProcessCsv(stream: StreamResponse<true>, props: { csv: CsvStream 
 
 	const insert = async () => {
 		if (batch.length < 1) return;
-		const userID = await InsertExternalUser("MyAnimeList", username.toLowerCase());
 
 		const media = await prisma.externalMedia.findMany({
 			select: { id: true, mediaID: true },
@@ -57,7 +56,9 @@ async function ProcessCsv(stream: StreamResponse<true>, props: { csv: CsvStream 
 				id: { in: batch.map(x => x.externalID )}
 			}
 		});
+		if (media.length < 0) return;
 
+		const userID = await InsertExternalUser("MyAnimeList", username.toLowerCase());
 		const data = [];
 		for (const score of batch) {
 			const m = media.find(x => x.id === score.externalID);
