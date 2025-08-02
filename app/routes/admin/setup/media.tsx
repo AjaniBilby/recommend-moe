@@ -15,13 +15,13 @@ export function loader() {
 		<h1 style={{ marginTop: "15px" }}>Import Media</h1>
 
 		<form method="POST" encType="multipart/form-data" hx-swap="innerHTML" hx-stream="on" hx-ext="hx-stream" hx-target="this">
-			<div style={{ display: "flex", gap: "10px" }}>
+			<div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
 				<input type="file" name="file"></input>
 				<button type="submit">submit</button>
 
+				<div className="output contents"></div>
 			</div>
 
-			<div id="results"></div>
 		</form>
 
 	</Container>, { title: "Admin - Import Media" });
@@ -38,28 +38,26 @@ export async function action({ request, cookie }: RouteContext) {
 
 type CsvStream = AsyncGenerator<Record<"anime_id", string>, void, unknown>;
 async function ProcessCsv(stream: StreamResponse<true>, props: { csv: CsvStream }) {
-	stream.send(".results", "innerHTML", <div>init...</div>);
+	stream.send(".output", "innerHTML", <div>collecting...</div>);
 
-	const mediaMap = new Map<string, number>();
-	let count = 0;
+	const targets = new Set<number>();
 	for await (const { anime_id } of props.csv) {
-		let mediaID = mediaMap.get(anime_id);
-		console.log("  fetch", anime_id, mediaID ? "hit" : "miss");
-		if (!mediaID) {
-			try {
-				mediaID = await InsertExternalMedia("MyAnimeList", anime_id);
-				mediaMap.set(anime_id, mediaID);
-			} catch (e) {
-				console.error(e);
-			}
-		}
+		const id = Number(anime_id);
+		if (isNaN(id) || id < 0) continue;
+		targets.add(id);
+	}
 
+	console.log(targets);
+	stream.send(".output", "innerHTML", <progress style={{ width: "100%" }} max={100}></progress>);
 
-		count ++;
-		if (count % 10_000 === 0) {
-			stream.send(".results", "innerHTML", <div>imported {count}</div>);
-			console.log(count);
-		}
+	let i = 0;
+	for (const id of targets) {
+		try {
+			await InsertExternalMedia("MyAnimeList", String(id));
+		} catch (e) { console.error(e); }
+
+		stream.send(".output", "innerHTML", `<progress style="width: 100%" value="${i/targets.size*100}" max="100" />`);
+		i++;
 	}
 
 
