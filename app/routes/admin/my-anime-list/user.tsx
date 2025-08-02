@@ -8,6 +8,7 @@ import { CsvFormStream, CsvStream } from "~/util/format/csv.ts";
 import { BatchGeneratorResults } from "~/util/format/stream.ts";
 import { ShapeArray } from "~/util/format/object.ts";
 import { prisma } from "~/db.server.ts";
+import { EnforcePermission } from "../../../model/permission.ts";
 
 export function loader() {
 	return shell(<div hx-ext="hx-stream">
@@ -22,9 +23,12 @@ export function loader() {
 
 
 
-export async function action({ request }: RouteContext) {
-	const csv = await CsvFormStream(request, ["username", "user_id"] as const);
+export async function action({ request, cookie }: RouteContext) {
+	await EnforcePermission(request, cookie, "MEDIA_MODIFY");
 
+	throw new Error("disabled");
+
+	const csv = await CsvFormStream(request, ["username", "user_id"] as const);
 	return MakeStream(request, { render: renderToString, csv, highWaterMark: 1000 }, ProcessCsv);
 }
 

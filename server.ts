@@ -3,7 +3,6 @@ import { createHtmxServer } from 'htmx-router/server.js';
 import { renderToString } from 'react-dom/server';
 
 import { ServeStatic, StaticResponse } from "~/server/static.ts";
-import { connectToWeb } from "./patch/connectToWeb.ts";
 
 const isProduction = Deno.env.get("NODE_ENV") === "production";
 const viteDevServer = isProduction
@@ -14,7 +13,6 @@ const viteDevServer = isProduction
 				appType: 'custom'
 			})
 		);
-const viteWrapper = viteDevServer ? connectToWeb(viteDevServer.middlewares) : undefined;
 
 if (!viteDevServer) {
 	ServeStatic("dist/server/dist/asset", "/dist/asset");

@@ -23,7 +23,8 @@ export function loader() {
 
 
 export async function action({ request }: RouteContext) {
-	const csv = await CsvFormStream(request, ["username", "anime_id", "my_score"] as const);
+
+	throw new Error("disabled");
 
 	return MakeStream(request, { render: renderToString, csv, highWaterMark: 1000 }, ProcessCsv);
 }
