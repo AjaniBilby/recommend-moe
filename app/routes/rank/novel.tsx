@@ -18,6 +18,7 @@ export async function loader({ url }: RouteContext) {
 
 	const media = await prisma.media.findMany({
 		select:  { id: true, title: true, icon: true, novelty: true, scoreRank: true },
+		where:   { novelty: { not: null }},
 		orderBy: { novelty: direction },
 		skip: offset,
 		take: 100

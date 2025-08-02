@@ -6,7 +6,11 @@ WITH "updates" AS (
 )
 
 UPDATE "Media" m
-SET "score" = u."avg",
+SET "score" =
+	CASE
+		WHEN u."count" < 100 THEN null
+		ELSE u."avg"
+	END,
 	"popularity" = u."count"
 FROM "updates" u
 WHERE m."id" = u."mediaID";
