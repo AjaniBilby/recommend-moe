@@ -7,8 +7,9 @@ const index = new Map<string, string>();
 export async function ServeStatic(folder: string, offset = "/") {
 	if (!folder.endsWith("/")) folder = folder + "/";
 
-	for await (const file of RecursiveReaddir(folder)) {
-		const path = offset + file.replaceAll("\\", "/").slice(folder.length);
+	for await (let file of RecursiveReaddir(folder)) {
+		file = file.replaceAll("\\", "/");
+		const path = offset + file.slice(folder.length);
 		index.set(path, file);
 	}
 }

@@ -238,11 +238,7 @@ sudo systemctl enable recommend-moe.service
 
 Install dependencies
 ```bash
-npm ci
-npm run build
-git rev-parse HEAD > "COMMIT"
-cd status_page & python3 generate.py
-npx prisma migrate deploy
+bash upgrade.bash
 ```
 
 ```bash

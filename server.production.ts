@@ -1,15 +1,16 @@
-import * as path from "node:path";
 import { createHtmxServer } from 'htmx-router/server.js';
 import { renderToString } from 'react-dom/server';
 
 import { ServeStatic, StaticResponse } from "~/server/static.ts";
 
-ServeStatic("build/server/build/asset", "/build/asset");
-ServeStatic("build/client");
+process.env.NODE_ENV = "production";
+
+ServeStatic("dist/server/dist/asset", "/dist/asset/");
+ServeStatic("dist/client");
 ServeStatic("public");
 
 
-const build = await import("./build/server/entry.server.js") as any;
+const build = await import("./dist/server/entry.server.js") as any;
 
 const htmx = createHtmxServer({
 	build, viteDevServer: null,

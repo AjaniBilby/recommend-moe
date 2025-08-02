@@ -14,7 +14,7 @@
 
 		"build": "deno task 'build:*'",
 		"build:client": "deno run -A npm:vite build",
-		"build:server": "deno run -A npm:vite build --ssr app/entry.server.ts --outDir build/server",
+		"build:server": "deno run -A npm:vite build --ssr app/entry.server.ts --outDir dist/server",
 
 		"compile": "deno compile -A production.ts --include build/* --include public/*",
 

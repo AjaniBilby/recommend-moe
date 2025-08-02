@@ -13,8 +13,8 @@ export default defineConfig({
 		rollupOptions: {
 			input: 'app/entry.client.ts'
 		},
-		outDir: 'build/client',
-		assetsDir: 'build/asset',
+		outDir: 'dist/client',
+		assetsDir: 'dist/asset',
 		ssrEmitAssets: true,
 		manifest: true
 	},
