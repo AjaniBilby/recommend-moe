@@ -8,7 +8,7 @@ import { Link } from "~/component/link.tsx";
 import { prisma } from "~/db.server.ts";
 
 export const parameters = { id: Number };
-export async function loader({ params }: RouteContext<typeof parameters>) {
+export async function loader({ params, headers }: RouteContext<typeof parameters>) {
 
 	const media = await prisma.media.findUnique({
 		select: { novelty: true },
@@ -17,6 +17,7 @@ export async function loader({ params }: RouteContext<typeof parameters>) {
 
 	const histogram = await prisma.$queryRawTyped(GetMediaSimilarityHistogram(params.id));
 
+	headers.set("Cache-Control", "public");
 	return <Dialog>
 		<Link href="/rank/novel">
 			<h3 style={{ marginTop: 0 }}>

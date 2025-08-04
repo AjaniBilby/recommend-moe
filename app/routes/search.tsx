@@ -14,7 +14,7 @@ import { Singleton } from "~/util/singleton.ts";
 import { prisma } from "~/db.server.ts";
 import { shell } from "~/routes/$.tsx";
 
-export async function loader({ url }: RouteContext) {
+export async function loader({ url, headers }: RouteContext) {
 	const query = url.searchParams.get('q')?.toLowerCase().slice(0, 250) || "";
 	if (query === "" && url.searchParams.has("q")) return redirect("/", MakeStatus("Permanent Redirect"));
 
@@ -27,8 +27,8 @@ export async function loader({ url }: RouteContext) {
 
 	const results = await Search(query, semantic);
 
+	headers.set("Cache-Control", "public");
 	return shell(<>
-
 		<Container style={{ marginTop: "1em" }}>
 			<form hx-trigger="change" hx-include="[name=q]" hx-swap="innerHTML transition:true">
 				<NamedSwitch name="search-mode" options={[

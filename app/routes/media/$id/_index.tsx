@@ -14,8 +14,14 @@ import { prisma } from "~/db.server.ts";
 import { shell } from "~/routes/$.tsx";
 
 export const parameters = { id: Number };
-export async function loader({ params }: RouteContext<typeof parameters>) {
+export async function loader({ params, headers }: RouteContext<typeof parameters>) {
 	const media = await prisma.media.findUnique({
+		select: {
+			id: true, title: true, description: true,
+			popularRank: true, popularity: true,
+			scoreRank: true, score: true,
+			novelty: true
+		},
 		where: { id: params.id }
 	});
 	if (!media) return null;
@@ -36,6 +42,7 @@ export async function loader({ params }: RouteContext<typeof parameters>) {
 
 	const color = await SemanticColor(params.id);
 
+	headers.set("Cache-Control", "public");
 	return shell(<>
 		<Container>
 			<div className={mediaStyle.name} style={{ "--local-color": `hsl(var(--${color}))` } as Record<string, string>}>

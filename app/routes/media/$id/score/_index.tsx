@@ -8,9 +8,10 @@ import { Link } from "~/component/link.tsx";
 import { prisma } from "~/db.server.ts";
 
 export const parameters = { id: Number };
-export async function loader({ params }: RouteContext<typeof parameters>) {
+export async function loader({ params, headers }: RouteContext<typeof parameters>) {
 	const histogram = await prisma.$queryRawTyped(GetMediaScoreHistogram(params.id));
 
+	headers.set("Cache-Control", "public");
 	return <Dialog>
 		<h2 style={{ marginTop: "0" }}>Score Distribution</h2>
 		<Client.Chart

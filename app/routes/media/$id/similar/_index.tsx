@@ -1,5 +1,6 @@
-import { GetSimilarMedia } from "@db/sql.ts";
+import { GetMediaAffinityHash, GetSimilarMedia } from "@db/sql.ts";
 import { RouteContext } from "htmx-router";
+import { MakeStatus } from "htmx-router/status";
 import { Style } from "htmx-router/css";
 
 import { MediaCard, MediaLoader } from "~/component/media.tsx";
@@ -21,6 +22,12 @@ export async function loader({ params, url, headers }: RouteContext<typeof param
 		return compute;
 	}
 
+	const etag = `"${await GetHash(params.id)}"`;
+
+	const clientETag = headers.get("if-none-match");
+	headers.set("ETag", etag);
+	if (clientETag === etag) return new Response(null, MakeStatus("Not Modified", { headers }));
+
 	return await Results(params.id, 0, 100);
 }
 
@@ -33,9 +40,9 @@ export function MediaSimilarity(props: { mediaID: number }) {
 }
 
 
-
+const CHUNK_SIZE = 100;
 async function Results(mediaID: number, offset: number, prev: number) {
-	const similar = await prisma.$queryRawTyped(GetSimilarMedia(mediaID, offset, 100));
+	const similar = await prisma.$queryRawTyped(GetSimilarMedia(mediaID, offset, CHUNK_SIZE));
 
 	if (similar.length === 0) {
 		if (offset === 0) return <div className="muted card" style={{ gridColumn: "1/-1", padding: "var(--radius)"}}>
@@ -63,6 +70,15 @@ async function Results(mediaID: number, offset: number, prev: number) {
 	return jsx;
 }
 
+
+async function GetHash(mediaID: number) {
+	// only look at the top 100 similarities for a speed boost
+	// also if the similarities changed, the top 100 likely did to
+	const query = await prisma.$queryRawTyped(GetMediaAffinityHash(mediaID, CHUNK_SIZE));
+	if (query[0]?.md5) return query[0]?.md5;
+
+	return "0";
+}
 
 
 export const similarityStyle = new Style("similarity", `

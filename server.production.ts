@@ -22,7 +22,7 @@ const htmx = createHtmxServer({
 		headers.set("X-Content-Type-Options", "nosniff");
 		headers.set("X-Frame-Options", "SAMEORIGIN");
 
-		return renderToString(res);
+		return "<!DOCTYPE html>" + renderToString(res);
 	}
 });
 
