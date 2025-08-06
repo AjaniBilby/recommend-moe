@@ -1,6 +1,6 @@
 import { GetMediaAffinityHash, GetSimilarMedia } from "@db/sql.ts";
+import { AssertETagStale } from "htmx-router/response";
 import { RouteContext } from "htmx-router";
-import { MakeStatus } from "htmx-router/status";
 import { Style } from "htmx-router/css";
 
 import { MediaCard, MediaLoader } from "~/component/media.tsx";
@@ -10,7 +10,7 @@ import { ShouldCompute } from "./compute.tsx";
 import { prisma } from "~/db.server.ts";
 
 export const parameters = { id: Number };
-export async function loader({ params, url, headers }: RouteContext<typeof parameters>) {
+export async function loader({ request, params, url, headers }: RouteContext<typeof parameters>) {
 	const offset = SafeQueryInteger(url.searchParams, "o", 0);
 	const prev   = SafeQueryInteger(url.searchParams, "p", 100);
 
@@ -22,12 +22,7 @@ export async function loader({ params, url, headers }: RouteContext<typeof param
 		return compute;
 	}
 
-	const etag = `"${await GetHash(params.id)}"`;
-
-	const clientETag = headers.get("if-none-match");
-	headers.set("ETag", etag);
-	if (clientETag === etag) return new Response(null, MakeStatus("Not Modified", { headers }));
-
+	AssertETagStale(request, headers, `"${await GetHash(params.id)}"`);
 	return await Results(params.id, 0, 100);
 }
 

@@ -1,13 +1,16 @@
 import { ApplyMetaDefaults, ShellOptions } from "htmx-router/shell";
 import { RouteContext } from "htmx-router";
-import { ReactNode } from "react";
+import { MakeStatus } from "htmx-router/status";
 import { Style } from "htmx-router/css";
+import { html } from "htmx-router/response";
+
+import { PhpResponse } from "~/model/php.tsx";
 
 import Client from "~/manifest.tsx";
 import { DialogResponse } from "~/component/server/dialog.tsx";
 import { ThemeSwitcher } from "~/component/client/theme-switcher.tsx";
-import { Scripts } from "~/component/server/scripts.tsx";
 import { Link, Open } from "~/component/link.tsx";
+import { Scripts } from "~/component/server/scripts.tsx";
 import { Head } from "~/component/server/head.tsx";
 
 import mainsheetUrl from "~/styles/main.css?url";
@@ -95,6 +98,14 @@ const headerStyle = new Style("header", `
 	box-shadow: 0px 6px 10px #ffffff15;
 }
 `);
+
+
+export function loader({ url, headers }: RouteContext) {
+	if (!url.pathname.endsWith(".php")) return null;
+
+	headers.set("Cache-Control", "public, max-age=604800, immutable")
+	return html(PhpResponse(), MakeStatus("I'm a teapot", { headers: headers }));
+}
 
 
 export async function error(ctx: RouteContext, e: unknown) {

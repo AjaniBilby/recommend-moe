@@ -25,6 +25,10 @@ model Media {
 	staleStats Boolean @default(true)
 	@@index([staleStats, id])
 
+	// TODO
+	// updatedAt DateTime @default(now()) @updatedAt
+	// createdAt DateTime @default(now())
+
 	userScores UserMediaScore[]
 	referred   ExternalMedia[]
 
@@ -96,7 +100,9 @@ model MediaAffinity {
 
 	score     Float @default(0)
 	overlap   Int   @default(0)
-	updatedAt DateTime @default(now()) @updatedAt
+
+	// TODO
+	// updatedAt DateTime @default(now()) @updatedAt
 
 	stale Boolean @default(true)
 	@@index([stale, aID, bID]) // allow index only reads

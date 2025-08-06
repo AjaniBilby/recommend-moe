@@ -16,16 +16,16 @@ fi
 echo "Updating dependencies"
 deno install
 
+echo ""
+echo "Building DB Connector"
+deno task prisma generate --sql
+
 echo "Building static assets"
 deno task build
 
 echo ""
 echo "Migrate Database"
 npx prisma migrate deploy
-
-echo ""
-echo "Building DB Connector"
-deno task prisma generate --sql
 
 git rev-parse HEAD > "COMMIT"
 
