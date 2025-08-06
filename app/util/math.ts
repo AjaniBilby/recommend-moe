@@ -78,3 +78,35 @@ const COMPARE_SETS_LOOKUP = [
 	-1,   // !A &&  B
 	0,    //  A &&  B
 ] as const;
+
+
+export class QuickHash {
+	public hash: number;
+
+	constructor () {
+		this.hash = 0;
+	}
+
+	push (val: number) {
+		this.hash = (this.hash << 5) - this.hash + val;
+		this.hash |= 0; // Convert to 32-bit integer
+	}
+
+	string (str: string) {
+		for (let i = 0; i < str.length; i++) this.push(str.charCodeAt(i));
+	}
+
+	result () { return this.hash; }
+
+	static string(str: string) {
+		const t = new QuickHash();
+		t.string(str);
+		return t.result();
+	}
+}
+
+export class Hash72 extends QuickHash {
+	override push (val: number) {
+		this.hash = (this.hash + val) % 1296
+	}
+}

@@ -14,7 +14,9 @@ export function action({ request, url, params, headers }: RouteContext<typeof pa
 
 	const infill = url.searchParams.get("infill") === "on";
 
-	return MakeStream(request, { render: renderToString, mediaID: params.id, infill, highWaterMark: 1000 }, Compute);
+	const res = MakeStream(request, { render: renderToString, mediaID: params.id, infill, highWaterMark: 1000 }, Compute);
+	res.headers.set("Content-Type", "text/event-stream");
+	return res;
 }
 
 

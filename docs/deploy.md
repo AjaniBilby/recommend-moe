@@ -159,6 +159,8 @@ server {
 
     proxy_request_buffering off;
     proxy_buffering off;
+    proxy_cache off;
+    proxy_pass_header X-Accel-Buffering;  # Forward this header
   }
 }
 
@@ -180,6 +182,8 @@ server {
 
     proxy_request_buffering off;
     proxy_buffering off;
+    proxy_cache off;
+    proxy_pass_header X-Accel-Buffering;  # Forward this header
   }
 }
 ```

@@ -1,4 +1,5 @@
 import { SearchMediaSemantic, SearchMediaTrigram } from "@db/sql.ts";
+import { AssertETagStale } from "htmx-router/response";
 import { RouteContext } from "htmx-router";
 import { MakeStatus } from "htmx-router/status";
 import { redirect } from "htmx-router/response";
@@ -9,12 +10,13 @@ import { NamedSwitch } from "~/component/input/switch.tsx";
 import { Container } from "~/component/container.tsx";
 import { MediaCard } from "~/component/media.tsx";
 
-import { Float32ArrayDot } from "~/util/math.ts";
+import { Float32ArrayDot, QuickHash } from "~/util/math.ts";
+import { TIME_SCALE } from "~/util/time.ts";
 import { Singleton } from "~/util/singleton.ts";
 import { prisma } from "~/db.server.ts";
 import { shell } from "~/routes/$.tsx";
 
-export async function loader({ url, headers }: RouteContext) {
+export async function loader({ request, url, headers }: RouteContext) {
 	const query = url.searchParams.get('q')?.toLowerCase().slice(0, 250) || "";
 	if (query === "" && url.searchParams.has("q")) return redirect("/", MakeStatus("Permanent Redirect"));
 
@@ -27,7 +29,12 @@ export async function loader({ url, headers }: RouteContext) {
 
 	const results = await Search(query, semantic);
 
-	headers.set("Cache-Control", "public");
+	const hash = new QuickHash();
+	for (const m of results) hash.push(m.id);
+
+	AssertETagStale(request, headers, hash.result().toString(36), { revalidate: 15*TIME_SCALE.minute/TIME_SCALE.second });
+
+	headers.set("Cache-Control", `public, max-age=${TIME_SCALE.hour/TIME_SCALE.second}`);
 	return shell(<>
 		<Container style={{ marginTop: "1em" }}>
 			<form hx-trigger="change" hx-include="[name=q]" hx-swap="innerHTML transition:true">

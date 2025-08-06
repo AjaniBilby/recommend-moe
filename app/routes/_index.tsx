@@ -1,13 +1,16 @@
+import { AssertETagStale } from "htmx-router/response";
 import { RouteContext } from "htmx-router";
 
 import { LazyLoad, Link } from "~/component/link.tsx";
 import { Container } from "~/component/container.tsx";
 
+import COMMIT from "../../COMMIT?raw" with { type: "text" };
 import { GettingStarted } from "./getting-started.tsx";
+import { TIME_SCALE } from "~/util/time.ts";
 import { shell } from "./$.tsx";
 
-export function loader({ headers }: RouteContext) {
-	headers.set("Cache-Control", "public");
+export function loader({ request, headers }: RouteContext) {
+	AssertETagStale(request, headers, COMMIT, { revalidate: 15*TIME_SCALE.minute/TIME_SCALE.second });
 
 	return shell(<Container>
 		<h2>Getting Started</h2>
