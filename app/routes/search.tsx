@@ -32,7 +32,7 @@ export async function loader({ request, url, headers }: RouteContext) {
 	const hash = new QuickHash();
 	for (const m of results) hash.push(m.id);
 
-	AssertETagStale(request, headers, hash.result().toString(36), { revalidate: 15*TIME_SCALE.minute/TIME_SCALE.second });
+	AssertETagStale(request, headers, hash.result().toString(36), { public: true, revalidate: 15*TIME_SCALE.minute/TIME_SCALE.second });
 
 	headers.set("Cache-Control", `public, max-age=${TIME_SCALE.hour/TIME_SCALE.second}`);
 	return shell(<>

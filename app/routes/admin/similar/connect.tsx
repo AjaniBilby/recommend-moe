@@ -1,5 +1,5 @@
 
-import { MakeStream, StreamResponse } from "hx-stream/dist/server";
+import { MakeStream, StreamResponse } from "hx-stream/server";
 import { FillMediaAffinity } from "@db/sql.ts";
 import { renderToString } from "react-dom/server";
 import { RouteContext } from "htmx-router";
@@ -13,7 +13,7 @@ export async function action({ request, cookie, headers }: RouteContext) {
 	headers.set("Cache-Control", "no-cache, no-store");
 	await EnforcePermission(request, cookie, "MEDIA_MODIFY");
 
-	return MakeStream(request, { render: renderToString, highWaterMark: 1000 }, Compute);
+	return MakeStream({ render: renderToString, highWaterMark: 1000, abortSignal: request.signal }, Compute);
 }
 
 

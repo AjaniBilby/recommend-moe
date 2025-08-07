@@ -1,5 +1,5 @@
 import { GetUserStaleMediaAffinity, UpdateUserMediaAffinity } from "@db/sql.ts";
-import { MakeStream, StreamResponse } from "hx-stream/dist/server";
+import { MakeStream, StreamResponse } from "hx-stream/server";
 import { renderToString } from "react-dom/server";
 import { RouteContext } from "htmx-router";
 
@@ -33,7 +33,7 @@ export function loader() {
 export async function action({ request, cookie, headers }: RouteContext) {
 	headers.set("Cache-Control", "private");
 	const userID = await EnforcePermission(request, cookie);
-	return MakeStream(request, { render: renderToString, userID, highWaterMark: 1000 }, Compute);
+	return MakeStream({ render: renderToString, userID, highWaterMark: 1000, abortSignal: request.signal }, Compute);
 }
 
 const scale = 1/TIME_SCALE.minute;

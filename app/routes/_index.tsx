@@ -10,7 +10,7 @@ import { TIME_SCALE } from "~/util/time.ts";
 import { shell } from "./$.tsx";
 
 export function loader({ request, headers }: RouteContext) {
-	AssertETagStale(request, headers, COMMIT, { revalidate: 15*TIME_SCALE.minute/TIME_SCALE.second });
+	AssertETagStale(request, headers, COMMIT, { public: true, revalidate: 15*TIME_SCALE.minute/TIME_SCALE.second });
 
 	return shell(<Container>
 		<h2>Getting Started</h2>

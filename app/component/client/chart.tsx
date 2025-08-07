@@ -1,7 +1,7 @@
 import { CSSProperties, useEffect, useRef } from "react";
 
-import chartTrendline from 'chartjs-plugin-trendline';
-import 'chartjs-adapter-date-fns';
+import chartTrendline from "npm:chartjs-plugin-trendline";
+import "npm:chartjs-adapter-date-fns";
 
 import {
 	ArcElement,

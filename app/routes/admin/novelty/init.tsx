@@ -1,4 +1,4 @@
-import { MakeStream, StreamResponse } from "hx-stream/dist/server";
+import { MakeStream, StreamResponse } from "hx-stream/server";
 import { RankNoveltyInit } from "@db/sql.ts";
 import { renderToString } from "react-dom/server";
 import { RouteContext } from "htmx-router";
@@ -10,12 +10,16 @@ import { prisma } from "~/db.server.ts";
 export async function action({ request, cookie, headers }: RouteContext) {
 	headers.set("Cache-Control", "no-cache, no-store");
 	await EnforcePermission(request, cookie, "MEDIA_MODIFY");
-	return MakeStream(request, { render: renderToString, highWaterMark: 1000 }, Compute);
+	return MakeStream({
+		highWaterMark: 1000,
+		abortSignal: request.signal,
+		render: renderToString,
+	}, Compute);
 }
 
 
 const scale = 1/1000;
-async function Compute(stream: StreamResponse<true>) {
+async function Compute(stream: StreamResponse<true>, props: Record<never, never>) {
 	await prisma.mediaRanking.deleteMany(); // clear any old values
 
 	stream.send("this", "innerHTML", <>

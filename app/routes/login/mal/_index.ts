@@ -31,7 +31,7 @@ export function loader({ request, cookie, headers }: RouteContext) {
 
 export function MakeURI(request: Request) {
 	const hostname = request.headers.get('host') || "localhost";
-	const protocol = hostname === "localhost" ? "http" : "https";
+	const protocol = hostname === "localhost:8000" ? "http" : "https";
 
 	return protocol+"://"+hostname+"/login/mal/callback";
 }

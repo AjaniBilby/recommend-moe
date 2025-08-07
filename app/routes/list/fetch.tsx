@@ -1,4 +1,4 @@
-import { MakeStream, StreamResponse } from "hx-stream/dist/server";
+import { MakeStream, StreamResponse } from "hx-stream/server";
 import { UpdateUserAffinityStale } from "@db/sql/UpdateUserAffinityStale.ts";
 import { UpdateUserAffinity } from "@db/sql.ts";
 import { renderToString } from "react-dom/server";
@@ -36,7 +36,7 @@ export function loader() {
 export async function action({ request, cookie, headers }: RouteContext) {
 	headers.set("Cache-Control", "private");
 	const userID = await EnforcePermission(request, cookie);
-	return MakeStream(request, { render: renderToString, userID, highWaterMark: 1000 }, Compute);
+	return MakeStream({ render: renderToString, userID, highWaterMark: 1000, abortSignal: request.signal }, Compute);
 }
 
 async function Compute(stream: StreamResponse<true>, props: { userID: number }) {

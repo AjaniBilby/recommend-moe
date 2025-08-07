@@ -1,5 +1,5 @@
 import { FillMediaAffinity, UpdateMediaAffinity } from "@db/sql.ts";
-import { MakeStream, StreamResponse } from "hx-stream/dist/server";
+import { MakeStream, StreamResponse } from "hx-stream/server";
 import { renderToString } from "react-dom/server";
 import { RouteContext } from "htmx-router";
 import { ReactNode } from "react";
@@ -14,8 +14,10 @@ export function action({ request, url, params, headers }: RouteContext<typeof pa
 
 	const infill = url.searchParams.get("infill") === "on";
 
-	const res = MakeStream(request, { render: renderToString, mediaID: params.id, infill, highWaterMark: 1000 }, Compute);
-	res.headers.set("Content-Type", "text/event-stream");
+	const res = MakeStream({
+		mediaID: params.id, infill,
+		render: renderToString, highWaterMark: 1000, abortSignal: request.signal
+	}, Compute);
 	return res;
 }
 

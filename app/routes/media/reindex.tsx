@@ -1,4 +1,4 @@
-import { MakeStream, StreamResponse } from "hx-stream/dist/server";
+import { MakeStream, StreamResponse } from "hx-stream/server";
 import { renderToString } from "react-dom/server";
 import { RouteContext } from "htmx-router";
 
@@ -12,7 +12,7 @@ export async function action({ request, cookie, headers }: RouteContext) {
 	headers.set("Cache-Control", "private");
 	const userID = await EnforcePermission(request, cookie, "MEDIA_MODIFY");
 
-	return MakeStream(request, { render: renderToString, userID, highWaterMark: 1000 }, Compute);
+	return MakeStream({ render: renderToString, userID, highWaterMark: 1000, abortSignal: request.signal }, Compute);
 }
 
 async function Compute(stream: StreamResponse<true>) {

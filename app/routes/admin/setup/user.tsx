@@ -1,4 +1,4 @@
-import { MakeStream, StreamResponse } from "hx-stream/dist/server";
+import { MakeStream, StreamResponse } from "hx-stream/server";
 import { renderToString } from "react-dom/server";
 import { RouteContext } from "htmx-router";
 
@@ -34,7 +34,7 @@ export async function action({ request, cookie }: RouteContext) {
 	await EnforcePermission(request, cookie, "USER_MODIFY");
 
 	const csv = await CsvFormStream(request, ["username", "anime_id", "my_score", "my_status"] as const);
-	return MakeStream(request, { render: renderToString, csv, highWaterMark: 1000 }, ProcessCsv);
+	return MakeStream({ render: renderToString, csv, highWaterMark: 1000, abortSignal: request.signal }, ProcessCsv);
 }
 
 type CsvStream = AsyncGenerator<Record<"username" | "anime_id" | "my_score" | "my_status", string>, void, unknown>;
