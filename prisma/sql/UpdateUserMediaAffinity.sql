@@ -5,14 +5,17 @@ WITH "affinity" AS (
 	UNION ALL
 	SELECT "aID", "score" FROM "UserAffinity" WHERE "bID" = $1 and "score" is not null
 ), "update" AS (
-	SELECT $2::int, $1::int, SUM(m."score" * a."score") / SUM(a."score")
+	SELECT CASE
+		WHEN COUNT(*) > 10 THEN SUM(m."score" * a."score") / SUM(a."score")
+		ELSE null
+	END as "score"
 	FROM "UserMediaScore" m
 	INNER JOIN "affinity" a ON a."userID" = m."userID"
 	WHERE "mediaID" = $2::int
 )
 
 INSERT INTO "UserMediaScore" ("mediaID", "userID", "affinity")
-SELECT *
+SELECT $2::int, $1::int, "score"
 FROM "update"
 ON CONFLICT ("mediaID", "userID") DO UPDATE
 	SET "affinity" = EXCLUDED."affinity"
