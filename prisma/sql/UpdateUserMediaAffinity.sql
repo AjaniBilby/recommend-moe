@@ -5,13 +5,11 @@ WITH "affinity" AS (
 	UNION ALL
 	SELECT "aID", "score" FROM "UserAffinity" WHERE "bID" = $1 and "score" is not null
 ), "update" AS (
-	SELECT CASE
-		WHEN COUNT(*) > 10 THEN SUM(m."score" * a."score") / SUM(a."score")
-		ELSE null
-	END as "score"
+	SELECT SUM(m."score" * a."score") / SUM(a."score") as "score"
 	FROM "UserMediaScore" m
 	INNER JOIN "affinity" a ON a."userID" = m."userID"
 	WHERE "mediaID" = $2::int
+	HAVING COUNT(*) > 10 -- exclude low overlap results
 )
 
 INSERT INTO "UserMediaScore" ("mediaID", "userID", "affinity")

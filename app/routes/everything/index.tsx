@@ -57,12 +57,17 @@ async function Compute(stream: StreamResponse<true>, props: { userID: number }) 
 		if (!mediaID) continue;
 
 		const p = i / media.length;
-		stream.send(".progress", "innerHTML", `<progress style="width: 100%" value="${p*100}" max="100" />`);
 
-		if (p > 0) {
-			const time = (Date.now() - start) / p;
-			stream.send(".status", "innerText", `ETA ${(time*scale).toFixed(2)} mins`);
+		if (i % (2**5) === 0) { // only log on 2^5 interval (avg exec = 58ms)
+			stream.send(".progress", "innerHTML", `<progress style="width: 100%" value="${p*100}" max="100" />`);
+
+			if (p > 0) {
+				const time = (Date.now() - start) / p;
+				stream.send(".status", "innerText", `ETA ${(time*scale).toFixed(2)} mins`);
+			}
 		}
+
+
 		await prisma.$queryRawTyped(UpdateUserMediaAffinity(userID, mediaID));
 	}
 
