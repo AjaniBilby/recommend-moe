@@ -16,7 +16,7 @@
 		"chartjs-plugin-trendline": "^2.1.9",
 		"extract-colors": "^4.2.0",
 		"htmx-router": "^2.0.6",
-		"hx-stream": "^0.2.2",
+		"hx-stream": "^0.2.3",
 		"isbot": "^4.1.0",
 		"jimp": "^1.6.0",
 		"react-dom": "^18.3.1",
