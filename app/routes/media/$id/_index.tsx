@@ -20,7 +20,7 @@ export async function loader({ params, headers }: RouteContext<typeof parameters
 			id: true, title: true, description: true,
 			popularRank: true, popularity: true,
 			scoreRank: true, score: true,
-			novelty: true
+			novelty: true,
 		},
 		where: { id: params.id }
 	});
