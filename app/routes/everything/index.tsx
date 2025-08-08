@@ -1,4 +1,4 @@
-import { GetUserStaleMediaAffinity, UpdateUserMediaAffinity } from "@db/sql.ts";
+import { UpdateUserMediaAffinity } from "@db/sql.ts";
 import { MakeStream, StreamResponse } from "hx-stream/server";
 import { renderToString } from "react-dom/server";
 import { RouteContext } from "htmx-router";
@@ -43,11 +43,17 @@ async function Compute(stream: StreamResponse<true>, props: { userID: number }) 
 
 	stream.send(".status", "innerText", "preparing...");
 
-	const media = await prisma.$queryRawTyped(GetUserStaleMediaAffinity(userID));
+	const media =await prisma.media.findMany({
+		select: { id: true },
+		where: {
+			userScores: { none: { userID, affinity: null }}
+		},
+		orderBy: { id: "asc" }
+	});
 
 	for (let i=0; i<media.length; i++) {
 		if (stream.readyState === StreamResponse.CLOSED) return;
-		const mediaID = media[i].mediaID;
+		const mediaID = media[i].id;
 		if (!mediaID) continue;
 
 		const p = i / media.length;

@@ -107,7 +107,7 @@ async function Compute(stream: StreamResponse<true>, props: { userID: number }) 
 		if (stream.readyState === StreamResponse.CLOSED) return;
 	}
 
-	await prisma.userMediaScore.updateMany({ where: { userID }, data:  { affinity: null } });
+	await prisma.userMediaScore.updateMany({ where: { userID }, data: { affinity: null } });
 
 	stream.send(".status", "innerText", "Done!");
 	stream.send(".stage", "innerText", "You can now close this window :D");
