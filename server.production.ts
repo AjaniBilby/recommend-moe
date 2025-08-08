@@ -1,4 +1,4 @@
-import { createHtmxServer } from 'htmx-router/server.js';
+import { createHtmxServer } from 'htmx-router/server';
 import { renderToString } from 'react-dom/server';
 
 import { ServeStatic, StaticResponse } from "~/server/static.ts";
@@ -13,17 +13,19 @@ ServeStatic("public");
 
 const build = await import("./dist/server/entry.server.js") as any;
 
+const headers = new Headers();
+headers.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
+headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+headers.set("Content-Type", "text/html; charset=UTF-8");
+headers.set("X-Content-Type-Options", "nosniff");
+headers.set("X-Frame-Options", "SAMEORIGIN");
+headers.set("Cache-Control", "public, max-age=900000");
+
+
 const htmx = createHtmxServer({
 	build, viteDevServer: null,
-	render: (res, headers) => {
-		headers.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
-		headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-		headers.set("Content-Type", "text/html; charset=UTF-8");
-		headers.set("X-Content-Type-Options", "nosniff");
-		headers.set("X-Frame-Options", "SAMEORIGIN");
-
-		return "<!DOCTYPE html>" + renderToString(res);
-	}
+	render: (e: JSX.Element) => "<!DOCTYPE html>" + renderToString(e),
+	headers
 });
 
 

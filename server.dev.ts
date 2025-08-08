@@ -1,5 +1,5 @@
 import * as path from "node:path";
-import { createHtmxServer } from 'htmx-router/server.js';
+import { createHtmxServer } from 'htmx-router/server';
 import { renderToString } from 'react-dom/server';
 
 import * as vite from "vite";
@@ -20,13 +20,12 @@ ServeStatic("public");
 
 const build = () => viteDevServer.ssrLoadModule("./app/entry.server.ts") as any;
 
+const headers = new Headers();
+headers.set("Cache-Control", "no-store");
+
 const htmx = createHtmxServer({
 	build, viteDevServer: viteDevServer as any,
-	render: (res, headers) => {
-		headers.set("Content-Type", "text/html; charset=UTF-8");
-
-		return renderToString(res);
-	}
+	render: renderToString, headers
 });
 
 

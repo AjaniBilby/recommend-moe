@@ -19,7 +19,13 @@ import { CutString } from "~/util/format/text.ts";
 const headers = <>
 	<meta charSet="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<meta name="robots" content="noindex" />
+	<link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="anonymous"></link>
+	<link rel="preconnect" href="https://fonts.gstatic.com"    crossOrigin="anonymous"></link>
+	<link
+		href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&family=Geist:wght@100..900&display=swap"
+		rel="stylesheet"
+		crossOrigin="anonymous"
+	></link>
 	<script src="https://unpkg.com/htmx.org@2.0.4"         crossOrigin="anonymous"></script>
 	<script src="https://unpkg.com/htmx-ext-preload@2.1.0" crossOrigin="anonymous"></script>
 	<script src="https://unpkg.com/htmx-ext-sse@2.2.2"     crossOrigin="anonymous"></script>
