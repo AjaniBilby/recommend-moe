@@ -9,8 +9,10 @@ import { GettingStarted } from "./getting-started.tsx";
 import { TIME_SCALE } from "~/util/time.ts";
 import { shell } from "./$.tsx";
 
+const commit = COMMIT.replaceAll(/[^0-9A-Za-z]/g, "");
+
 export function loader({ request, headers }: RouteContext) {
-	AssertETagStale(request, headers, COMMIT, { public: true, revalidate: 15*TIME_SCALE.minute/TIME_SCALE.second });
+	AssertETagStale(request, headers, commit, { public: true, revalidate: 15*TIME_SCALE.minute/TIME_SCALE.second });
 
 	return shell(<Container>
 		<h2>Getting Started</h2>

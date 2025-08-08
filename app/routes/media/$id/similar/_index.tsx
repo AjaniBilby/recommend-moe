@@ -22,7 +22,7 @@ export async function loader({ request, params, url, headers }: RouteContext<typ
 		return compute;
 	}
 
-	AssertETagStale(request, headers, `"${await GetHash(params.id)}"`, { public: true });
+	AssertETagStale(request, headers, await GetHash(params.id), { public: true });
 	return await Results(params.id, 0, 100);
 }
 
