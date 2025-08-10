@@ -6,6 +6,7 @@ import { RouteContext } from "htmx-router";
 import { EnforcePermission } from "~/model/permission.ts";
 
 import { prisma } from "~/db.server.ts";
+import { Lerp } from "~/util/math.ts";
 
 export async function action({ request, cookie, headers }: RouteContext) {
 	headers.set("Cache-Control", "no-cache, no-store");
@@ -25,7 +26,7 @@ async function Compute(stream: StreamResponse<true>) {
 	let stale = await CountStale();
 	let tally = 0;
 
-	while (stale > 0) {
+	while (true) {
 		if (stream.readyState === StreamResponse.CLOSED) return;
 		stream.send(".progress", "innerHTML", `<progress style="width: 100%" value="${tally/stale*100}" max="100" />`);
 		stream.send(".status", "innerText", `Analyzed ${tally} of ${stale} (batch size: ${batchSize})`);
@@ -38,10 +39,15 @@ async function Compute(stream: StreamResponse<true>) {
 		const took = e-s;
 
 		// optimize the batch size for 700ms iterations
-		batchSize = Math.floor(700 * (batchSize/took));
+		const next = 700 * (batchSize/took);
+		batchSize = Math.floor(Lerp(batchSize, next, 0.1));
 		if (batchSize < 10) batchSize = 10;
 
-		if (tally >= stale) stale = await CountStale();
+		if (tally >= stale) {
+			const delta = await CountStale();
+			if (delta < 1) break;
+			stale += delta;
+		}
 	}
 
 	stream.send(".progress", "innerHTML", `<progress style="width: 100%" value="100" max="100" />`);

@@ -43,6 +43,10 @@ export function Float32ArrayDot(a: Float32Array | number[], b: Float32Array | nu
 	return sum;
 }
 
+export function Lerp(a: number, b: number, p: number) {
+	return (b-a)*p + a;
+}
+
 
 
 /**
