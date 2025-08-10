@@ -21,16 +21,26 @@ async function Compute(stream: StreamResponse<true>) {
 		<div className="status"></div>
 	</>);
 
+	let batchSize = 100;
 	let stale = await CountStale();
 	let tally = 0;
 
 	while (stale > 0) {
 		if (stream.readyState === StreamResponse.CLOSED) return;
 		stream.send(".progress", "innerHTML", `<progress style="width: 100%" value="${tally/stale*100}" max="100" />`);
-		stream.send(".status", "innerText", `Analyzed ${tally} of ${stale}`);
-		await prisma.$queryRawTyped(UpdateMediaStaleAffinity());
+		stream.send(".status", "innerText", `Analyzed ${tally} of ${stale} (batch size: ${batchSize})`);
 
-		tally += 100;
+		const s = Date.now();
+		await prisma.$queryRawTyped(UpdateMediaStaleAffinity(batchSize));
+		const e = Date.now();
+		tally += batchSize;
+
+		const took = e-s;
+
+		// optimize the batch size for 700ms iterations
+		batchSize = Math.floor(700 * (batchSize/took));
+		if (batchSize < 10) batchSize = 10;
+
 		if (tally >= stale) stale = await CountStale();
 	}
 
