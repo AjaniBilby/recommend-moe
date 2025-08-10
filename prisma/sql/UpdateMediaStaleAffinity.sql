@@ -2,6 +2,7 @@ WITH "stale" AS (
 	SELECT "aID", "bID"
 	FROM "MediaAffinity"
 	WHERE "stale" = true
+	ORDER BY "aID" desc, "bID" desc -- better page caching for repeated calls
 	LIMIT 100
 ), "updates" AS (
 	SELECT s."aID", s."bID", c.score, c.overlap
