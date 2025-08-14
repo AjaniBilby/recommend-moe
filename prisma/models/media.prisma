@@ -98,7 +98,7 @@ model MediaAffinity {
 
 	@@index([aID, bID, overlap(sort: Desc)])
 
-	score     Float @default(0)
+	score     Float @default(0) // cosine similarly (based on user scores)
 	overlap   Int   @default(0)
 
 	// TODO
