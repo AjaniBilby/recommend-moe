@@ -46,7 +46,7 @@ async function Compute(stream: StreamResponse<true>, props: { userID: number }) 
 	const media = await prisma.media.findMany({
 		select: { id: true },
 		where: { OR: [
-			{ userScores: { some: { userID, affinity: null, score: null }} },
+			{ userScores: { some: { userID, affinity: null }} },
 			{ userScores: { none: { userID }} },
 		]},
 		orderBy: { id: "desc" }
@@ -57,9 +57,12 @@ async function Compute(stream: StreamResponse<true>, props: { userID: number }) 
 		const mediaID = media[i].id;
 		if (!mediaID) continue;
 
-		const p = i / media.length;
+		await prisma.$queryRawTyped(UpdateUserMediaAffinity(userID, mediaID));
+
+		if (i === 0) continue;
 
 		if (i % (2**5) === 0) { // only log on 2^5 interval (avg exec = 58ms)
+			const p = i / media.length;
 			stream.send(".progress", "innerHTML", `<progress style="width: 100%" value="${p*100}" max="100" />`);
 
 			if (p > 0) {
@@ -67,9 +70,6 @@ async function Compute(stream: StreamResponse<true>, props: { userID: number }) 
 				stream.send(".status", "innerText", `ETA ${(time*scale).toFixed(2)} mins`);
 			}
 		}
-
-
-		await prisma.$queryRawTyped(UpdateUserMediaAffinity(userID, mediaID));
 	}
 
 	stream.send(".progress", "innerText", "You can now close this window :D");
