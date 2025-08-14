@@ -43,12 +43,13 @@ async function Compute(stream: StreamResponse<true>, props: { userID: number }) 
 
 	stream.send(".status", "innerText", "preparing...");
 
-	const media =await prisma.media.findMany({
+	const media = await prisma.media.findMany({
 		select: { id: true },
-		where: {
-			userScores: { none: { userID, affinity: null }}
-		},
-		orderBy: { id: "asc" }
+		where: { OR: [
+			{ userScores: { some: { userID, affinity: null, score: null }} },
+			{ userScores: { none: { userID }} },
+		]},
+		orderBy: { id: "desc" }
 	});
 
 	for (let i=0; i<media.length; i++) {
