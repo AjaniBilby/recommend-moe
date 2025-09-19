@@ -1,5 +1,4 @@
-import { // @ts-types="react"
-CSSProperties, ReactNode } from "react";
+import { CSSProperties, ReactNode } from "react";
 
 export function Container(props: { className?: string, style?: CSSProperties, children: ReactNode }) {
 	return <div style={{ display: "flex", justifyContent: "center" }}>

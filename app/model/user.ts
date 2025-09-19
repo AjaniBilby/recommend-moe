@@ -33,7 +33,7 @@ export async function InsertExternalUser(type: ExternalKind, id: string) {
 	if (external) return external.userID;
 
 	const userID = await prisma.$transaction(async (tx) => {
-		const slot = await tx.user.create({ data: {}});
+		const slot = await tx.user.create({ select: { id: true }, data: {}});
 		await tx.externalUser.create({ data: { userID: slot.id, type, id }})
 
 		return slot.id;
