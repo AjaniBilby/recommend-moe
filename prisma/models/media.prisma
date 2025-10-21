@@ -37,6 +37,8 @@ model Media {
 
 	calculation MediaRanking? @ignore
 
+	embedding Unsupported("vector(50)")? /// MF vector
+
 	embeddings MediaEmbedding[]
 	titles     MediaTitle[]
 }
@@ -101,27 +103,8 @@ model MediaAffinity {
 	score     Float @default(0) // cosine similarly (based on user scores)
 	overlap   Int   @default(0)
 
-	// TODO
-	// updatedAt DateTime @default(now()) @updatedAt
+	updatedAt DateTime @default(now()) @updatedAt
 
 	stale Boolean @default(true)
 	@@index([stale, aID, bID]) // allow index only reads
-}
-
-
-model MediaRanking {
-	media Media @relation(fields: [id], references: [id], onUpdate: Cascade, onDelete: Cascade)
-	id    Int   @id
-
-	width  Float
-	weight Float @default(1.0)
-	next   Float?
-
-	@@index([id, weight, width]) // covering index
-
-	outstanding Boolean @default(dbgenerated("(next IS NULL)"))
-	@@index([outstanding, id])
-
-	@@index([iteration, outstanding]) // for monitoring progress
-	iteration Int @default(0)
 }

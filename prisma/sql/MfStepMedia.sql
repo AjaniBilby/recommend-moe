@@ -6,13 +6,8 @@ WITH "users" AS (
 	  random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1,
 	  random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1,
 	  random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1,
-	  random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1,
-	  random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1,
-	  random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1,
-	  random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1,
-	  random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1,
 	  random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1
-	]::vector(100) AS "vector"
+	]::vector(50) AS "vector"
 	FROM "UserMediaScore"
 	WHERE "mediaID" = 5617 and "score" > 0
 ),
@@ -24,13 +19,8 @@ WITH "users" AS (
 	  random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1,
 	  random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1,
 	  random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1,
-	  random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1,
-	  random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1,
-	  random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1,
-	  random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1,
-	  random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1,
 	  random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1, random() * 0.1
-	]::vector(100) AS "vector"
+	]::vector(50) AS "vector"
 ), "step" AS (
 	SELECT u."score" + (u."vector" <#> m."vector") as "error",
 		u."vector"
@@ -41,7 +31,7 @@ WITH "users" AS (
 
 SELECT m."vector" + g."grad", "error"
 FROM (
-	SELECT SUM(array_fill("error", '{100}')::vector(100) * "vector") as "grad", SUM("error") as "error"
+	SELECT SUM(array_fill("error", '{50}')::vector(50) * "vector") as "grad", SUM("error") as "error"
 	FROM "step"
 ) g
 CROSS JOIN "media" m;

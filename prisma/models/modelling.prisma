@@ -1,0 +1,35 @@
+enum MfFactorType {
+	USER,
+	MEDIA
+}
+
+model MfFactor {
+	id   Int
+	type MfFactorType
+
+	@@unique([id, type])
+
+	embedding Unsupported("vector(50)")? /// MF vector
+	error     Float
+
+	nextEmbedding Unsupported("vector(50)")? /// MF vector
+	nextError     Float
+}
+
+
+model MediaRanking {
+	media Media @relation(fields: [id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+	id    Int   @id
+
+	width  Float
+	weight Float @default(1.0)
+	next   Float?
+
+	@@index([id, weight, width]) // covering index
+
+	outstanding Boolean @default(dbgenerated("(next IS NULL)"))
+	@@index([outstanding, id])
+
+	@@index([iteration, outstanding]) // for monitoring progress
+	iteration Int @default(0)
+}
