@@ -1,6 +1,6 @@
 enum MfFactorType {
-	USER,
 	MEDIA
+	USER
 }
 
 model MfFactor {
@@ -9,11 +9,11 @@ model MfFactor {
 
 	@@unique([id, type])
 
-	embedding Unsupported("vector(50)")? /// MF vector
+	embedding Unsupported("vector(50)") /// MF vector
 	error     Float
 
 	nextEmbedding Unsupported("vector(50)")? /// MF vector
-	nextError     Float
+	nextError     Float?
 }
 
 
