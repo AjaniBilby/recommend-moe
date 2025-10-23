@@ -1,6 +1,5 @@
+import { UpdateUserAffinity, UpdateUserAffinityStale } from "@db/sql.ts";
 import { MakeStream, StreamResponse } from "hx-stream/server";
-import { UpdateUserAffinityStale } from "@db/sql/UpdateUserAffinityStale.ts";
-import { UpdateUserAffinity } from "@db/sql.ts";
 import { renderToString } from "react-dom/server";
 import { RouteContext } from "htmx-router";
 

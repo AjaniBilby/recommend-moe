@@ -1,6 +1,7 @@
 import { BundleSplitter, ClientIsland } from "htmx-router/vite";
 import { defineConfig, UserConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
+import deno from "@deno/vite-plugin";
 
 type T = NonNullable<UserConfig["plugins"]>[number];
 
@@ -21,6 +22,7 @@ export default defineConfig({
 	plugins: [
 		ClientIsland("react") as T,
 		BundleSplitter() as T,
-		tsconfigPaths()
+		tsconfigPaths(),
+		deno()
 	]
 });

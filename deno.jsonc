@@ -30,7 +30,7 @@
 		"types": ["react", "react-dom", "@types/react", "./types.d.ts"]
 	},
 	"imports": {
-		"@db/": "./build/prisma/",
+		"@db/": "./dist/prisma/",
 		"~/": "./app/",
 
 		"@std/http": "jsr:@std/http@^1.0.4",
