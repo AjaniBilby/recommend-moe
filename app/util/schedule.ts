@@ -157,3 +157,67 @@ export class PromiseBatch<T = void> {
 		return this.#promise;
 	}
 }
+
+export class TaskThrottle {
+	#promise?: Promise<void>;
+	#resolver?: () => void;
+
+	#concurrent: number;
+	#eager: boolean;
+	#tasks: Array<() => Promise<void>>;
+	#active: number;
+
+	#stagger: number;
+
+	#resolve: () => void;
+
+	constructor (concurrent: number, stagger?: number) {
+		this.#concurrent = Math.max(1, concurrent);
+		this.#stagger = stagger ? Math.max(0, stagger) : 0;
+		this.#eager = stagger === undefined;
+
+		this.#active = 0;
+		this.#tasks = [];
+
+		this.#resolve = () => {
+			this.#active--;
+			this.#queue().catch(console.error);
+		};
+	}
+
+	enqueue(task: () => Promise<void>) {
+		this.#tasks.push(task);
+		if (this.#eager) this.#queue().catch(console.error);
+	}
+
+	async #queue() {
+		let multi = false;
+		while (this.#tasks.length > 0 && this.#active < this.#concurrent) {
+			const task = this.#tasks.shift();
+			if (!task) {
+				if (!this.#resolver) return;
+				this.#resolver();
+				return;
+			}
+
+			if (multi && this.#stagger) await Timeout(this.#stagger);
+			else multi = true;
+
+			task().then(this.#resolve).catch(this.#resolve);
+			this.#active++;
+		}
+
+		if (this.#tasks.length === 0 && this.#active === 0) {
+			if (!this.#resolver) return;
+			this.#resolver();
+			return;
+		}
+	}
+
+	wait(): Promise<void> {
+		this.#promise ||= new Promise<void>((res) => { this.#resolver = res; });
+		this.#queue().catch(console.error); // ensure task are scheduled
+
+		return this.#promise;
+	}
+}

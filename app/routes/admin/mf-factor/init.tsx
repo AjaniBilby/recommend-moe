@@ -1,5 +1,5 @@
 import { MakeStream, StreamResponse } from "hx-stream/server";
-import { RankNoveltyInit } from "@db/sql.ts";
+import { MkInitMedia, MkInitUser } from "@db/sql.ts";
 import { renderToString } from "react-dom/server";
 import { RouteContext } from "htmx-router";
 
@@ -20,41 +20,27 @@ export async function action({ request, cookie, headers }: RouteContext) {
 
 const scale = 1/1000;
 async function Compute(stream: StreamResponse<true>, props: Record<never, never>) {
-	await prisma.mediaRanking.deleteMany(); // clear any old values
-
 	stream.send("this", "innerHTML", <>
 		<div className="progress">
-			<progress style={{ width: "100%" }} max={100}></progress>
+			<progress style={{ width: "0%" }} max={100}></progress>
 		</div>
 		<div className="status"></div>
 	</>);
 
 	const start = Date.now();
-	let tally = 0;
 
-	const total = await prisma.media.count();
-	let i = await prisma.mediaRanking.count();
-	while (i < total) {
-		if (stream.readyState === StreamResponse.CLOSED) return;
+	await prisma.mfFactor.deleteMany(); // clear any old values
 
-		if (i > 0) {
-			const rem = total - i;
-			const time = (Date.now() - start) / tally * rem;
-			stream.send(".progress", "innerHTML", `<progress style="width: 100%" value="${i/total*100}" max="100" />`);
-			stream.send(".status", "innerText", `eta: ${(time*scale).toFixed(2)} sec`);
-		}
-		await prisma.$queryRawTyped(RankNoveltyInit());
+	stream.send(".progress", "innerHTML", `<progress style="width: 100%" value="33" max="100" />`);
 
-		const next = await prisma.mediaRanking.count();
-		tally += next-i;
-		i = next;
-	}
+	await prisma.$queryRawTyped(MkInitMedia());
+	stream.send(".progress", "innerHTML", `<progress style="width: 100%" value="66" max="100" />`);
 
-	// remove any media with no connections
-	await prisma.mediaRanking.deleteMany({ where: { width: 0 } });
+	await prisma.$queryRawTyped(MkInitUser());
+	stream.send(".progress", "innerHTML", `<progress style="width: 100%" value="100" max="100" />`);
+
 
 	const time = (Date.now() - start);
-	stream.send(".progress", "innerHTML", `<progress style="width: 100%" value="100" max="100" />`);
 	stream.send(".status", "innerText", `Done! Taking ${(time*scale).toFixed(2)} sec`);
 	stream.close();
 }

@@ -10,7 +10,7 @@ WITH "medias" AS (
 	FROM "MfFactor"
 	WHERE "type" = 'USER' and "id" = $1::int
 ), "errors" AS (
-	SELECT m."score" + (m."embedding" <#> u."embedding") as "error",
+	SELECT (1.0 - m."score") + (m."embedding" <#> u."embedding") as "error",
 		m."embedding"
 	FROM "medias" m
 	CROSS JOIN "user" u

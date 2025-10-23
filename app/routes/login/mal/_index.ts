@@ -4,7 +4,6 @@ import { randomBytes } from "node:crypto";
 import { redirect } from "htmx-router/response";
 
 import { StartChallenge } from "~/session.ts";
-import { CutString } from "~/util/format/text.ts";
 
 export function loader({ request, cookie, headers }: RouteContext) {
 	headers.set("Cache-Control", "private, no-store");
@@ -25,6 +24,7 @@ export function loader({ request, cookie, headers }: RouteContext) {
 	to.searchParams.set("code_challenge", challenge)
 	to.searchParams.set("code_challenge_method", "plain");
 	to.searchParams.set("redirect_uri", MakeURI(request));
+	to.searchParams.set("scope", "anime_list");
 
 	return redirect(to.toString());
 }

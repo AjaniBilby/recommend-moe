@@ -63,6 +63,31 @@ export function loader() {
 				hx-put="/admin/novelty/commit"
 			>Commit</button>
 		</div>
+
+		<h2>MF Factor</h2>
+		<div style={gridStyle}>
+			<button type="button" className="secondary"
+				hx-put="/admin/mf-factor/init"
+				hx-ext="hx-stream"
+				hx-swap="innerHTML"
+				hx-stream="on"
+				hx-target="#mf-factor-init"
+			>Setup</button>
+			<div id="mf-factor-init"></div>
+
+			<button type="button" className="secondary"
+				hx-put="/admin/mf-factor/process"
+				hx-ext="hx-stream"
+				hx-swap="innerHTML"
+				hx-stream="on"
+				hx-target="#mf-factor-process"
+			>Process</button>
+			<div id="mf-factor-process"></div>
+
+			<button type="button" className="secondary"
+				hx-put="/admin/mf-factor/commit"
+			>Commit</button>
+		</div>
 	</Container>, { search: { value: "!admin"}});
 }
 

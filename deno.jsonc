@@ -53,6 +53,7 @@
 		"htmx-router": "npm:htmx-router@~2.1.6",
 		"hx-stream": "npm:hx-stream@~0.2.2",
 		"jimp": "npm:jimp@^1.6.0",
+		"pg": "npm:pg@~8.16.3",
 		"prisma-json-types-generator": "npm:prisma-json-types-generator@~3.6.2",
 		"react": "npm:react@~18.3.1",
 		"react-dom": "npm:react-dom@~18.3.1",
