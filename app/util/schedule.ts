@@ -221,3 +221,58 @@ export class TaskThrottle {
 		return this.#promise;
 	}
 }
+
+
+export function JobQueue<T>(props: {
+	tasks: Array<T>,
+	task: (task: T, abort?: AbortSignal) => Promise<void>,
+	concurrency: number,
+	abort?: AbortSignal,
+
+	notify?: (completed: number, total: number) => void
+}): Promise<void> {
+	return new Promise<void>((resolve, reject) => {
+		if (props.tasks.length < 1) return resolve();
+
+		let completed = 0;
+		let cursor = 0;
+		let active = 0;
+
+		const error = (e: unknown) => {
+			console.error(e);
+			next();
+		}
+
+		const next = () => {
+			completed++;
+			active--; // make self as done
+			queue();  // queue more jobs if possible
+
+			if (props.notify) props.notify(completed, props.tasks.length);
+			if (active !== 0) return; // other jobs are still running
+
+			if (completed < props.tasks.length) {
+				reject(new Error("Not all tasks completed, but no jobs are queued"));
+				return;
+			}
+
+			// all jobs done
+			return resolve();
+		}
+		const queue = () => {
+			if (props.abort?.aborted) return;
+
+			while (active < props.concurrency) {
+				if (cursor >= props.tasks.length) break;
+
+				props.task(props.tasks[cursor], props.abort)
+					.then(next)
+					.catch(error);
+				cursor++;
+				active++;
+			}
+		}
+
+		queue();
+	});
+}

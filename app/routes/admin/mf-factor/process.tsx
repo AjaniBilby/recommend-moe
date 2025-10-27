@@ -5,7 +5,7 @@ import { RouteContext } from "htmx-router";
 
 import { EnforcePermission } from "~/model/permission.ts";
 
-import { ChunkArray } from "~/util/format/array.ts";
+import { JobQueue } from "~/util/schedule.ts";
 import { prisma } from "~/db.server.ts";
 
 export async function action({ request, cookie, headers }: RouteContext) {
@@ -14,10 +14,14 @@ export async function action({ request, cookie, headers }: RouteContext) {
 	return MakeStream({ render: renderToString, highWaterMark: 1000, abortSignal: request.signal }, Compute);
 }
 
-const LEARNING_RATE = 0.0002;
-const MAX_STEPS  = 20;
+const LEARNING_RATE = {
+	media: 0.1,
+	user:  0.002
+};
+const MAX_STEPS  = 30;
 const SCALE  = 1/1000;
-const PARRALLEL = 100;
+const PARRALLEL = 20;
+const INTERVAL = 1_000/2_000;
 
 async function Compute(stream: StreamResponse<true>) {
 	stream.send("this", "innerHTML", <>
@@ -33,29 +37,55 @@ async function Compute(stream: StreamResponse<true>) {
 		<div className="status"></div>
 	</>);
 
+	let firstDraw = true;
 	const targets = await GetTargets();
 	for (let step=0; step<MAX_STEPS; step++) {
 		const start = Date.now();
 
 		stream.send(".user", "innerHTML", `<progress style="width: 100%" value={0} max="${targets.user.length}" />`);
 
-		for (let i=0; i<targets.media.length; i++) {
-			await Promise.all(targets.media[i].map(u => prisma.$queryRawTyped(MfStepMedia(u, LEARNING_RATE))));
-			if (stream.readyState === StreamResponse.CLOSED) return;
-			stream.send(".media", "innerHTML", `<progress style="width: 100%" value="${i+1}" max="${targets.media.length}" />`);
-		}
+		let nextDraw = Date.now() + INTERVAL;
+		await JobQueue({
+			concurrency: PARRALLEL,
+			tasks: targets.media,
+			task: async (userID) => {
+				await prisma.$queryRawTyped(MfStepMedia(userID, LEARNING_RATE.media));
+				return;
+			},
+
+			notify: (completed, total) => {
+				const n = Date.now();
+				if (n < nextDraw) return;
+
+				stream.send(".media", "innerHTML", `<progress style="width: 100%" value="${completed}" max="${total}" />`);
+				nextDraw = n + INTERVAL;
+			}
+		});
 		const mediaStats = (await prisma.$queryRawTyped(MfStats('MEDIA')))[0];
 		await prisma.$queryRawTyped(MfStep('MEDIA'));
+		stream.send(".media", "innerHTML", `<progress style="width: 100%" value="${targets.media.length}" max="${targets.media.length}" />`);
 
-		for (let i=0; i<targets.user.length; i++) {
-			await Promise.all(targets.user[i].map(u => prisma.$queryRawTyped(MfStepUser(u, LEARNING_RATE))));
-			if (stream.readyState === StreamResponse.CLOSED) return;
-			stream.send(".user", "innerHTML", `<progress style="width: 100%" value="${i+1}" max="${targets.user.length}" />`);
-		}
+		await JobQueue({
+			concurrency: PARRALLEL,
+			tasks: targets.user,
+			task: async (userID) => {
+				await prisma.$queryRawTyped(MfStepUser(userID, LEARNING_RATE.media));
+				return;
+			},
+
+			notify: (completed, total) => {
+				const n = Date.now();
+				if (n < nextDraw) return;
+
+				stream.send(".user", "innerHTML", `<progress style="width: 100%" value="${completed}" max="${total}" />`);
+				nextDraw = n + INTERVAL;
+			}
+		});
 		const userStats = (await prisma.$queryRawTyped(MfStats('USER')))[0];
 		await prisma.$queryRawTyped(MfStep('USER'));
 
 		if (stream.readyState === StreamResponse.CLOSED) return;
+		stream.send(".media", "innerHTML", `<progress style="width: 100%" value="${targets.user.length}" max="${targets.user.length}" />`);
 		stream.send(".status", "afterbegin", <div style={{
 			marginBlock: '1rem',
 			marginLeft:  '1em',
@@ -72,6 +102,11 @@ async function Compute(stream: StreamResponse<true>) {
 			{RenderStats(userStats)}
 		</div>);
 		stream.send(".iteration", "innerHTML", `<progress style="width: 100%" value="${step+1}" max="${MAX_STEPS}" />`);
+
+		if (firstDraw) {
+			firstDraw = false;
+			await prisma.mfFactor.deleteMany({ where: { nextError: null} });
+		}
 	}
 
 	stream.close();
@@ -89,8 +124,8 @@ async function GetTargets() {
 	});
 
 	return {
-		media: ChunkArray(medias.map(x => x.id), PARRALLEL),
-		user:  ChunkArray(users.map(x => x.id), PARRALLEL),
+		media: medias.map(x => x.id),
+		user:  users.map(x => x.id),
 	}
 }
 
@@ -103,7 +138,7 @@ function RenderStats(s: { type: 'MEDIA' | 'USER', error: number | null, next: nu
 	if (errorValue === 0) {
 		change = nextValue > 0 ? 100 : 0; // Handle division by zero
 	} else {
-		change = ((nextValue - errorValue) / errorValue) * 100;
+		change = (1.0 - (errorValue/nextValue)) * 100.0;
 	}
 
 	return <div className="contents">

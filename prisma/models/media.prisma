@@ -37,7 +37,7 @@ model Media {
 
 	calculation MediaRanking? @ignore
 
-	embedding Unsupported("vector(50)")? /// MF vector
+	embedding Unsupported("vector(100)")? /// MF vector
 
 	embeddings MediaEmbedding[]
 	titles     MediaTitle[]

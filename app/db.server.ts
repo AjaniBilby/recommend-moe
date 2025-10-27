@@ -1,6 +1,7 @@
 import invariant from "tiny-invariant";
 import { PrismaClient } from "@db/client.ts";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from 'pg';
 
 import { InitRoles } from "~/model/role.ts";
 

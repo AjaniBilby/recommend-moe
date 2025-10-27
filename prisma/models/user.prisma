@@ -10,7 +10,7 @@ model User {
 	createdAt DateTime @default(now())
 	updatedAt DateTime @default(now()) @updatedAt
 
-	embedding Unsupported("vector(50)")? /// MF vector
+	embedding Unsupported("vector(100)")? /// MF vector
 
 	sessions UserSession[]
 	tokens UserAuthToken[]

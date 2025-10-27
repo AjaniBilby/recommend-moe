@@ -2,18 +2,18 @@
 CREATE TYPE "MfFactorType" AS ENUM ('MEDIA', 'USER');
 
 -- AlterTable
-ALTER TABLE "Media" ADD COLUMN     "embedding" vector(50);
+ALTER TABLE "Media" ADD COLUMN     "embedding" vector(128);
 
 -- AlterTable
-ALTER TABLE "User" ADD COLUMN     "embedding" vector(50);
+ALTER TABLE "User" ADD COLUMN     "embedding" vector(128);
 
 -- CreateTable
 CREATE TABLE "MfFactor" (
     "id" INTEGER NOT NULL,
     "type" "MfFactorType" NOT NULL,
-    "embedding" vector(50) NOT NULL,
+    "embedding" vector(128) NOT NULL,
     "error" DOUBLE PRECISION NOT NULL,
-    "nextEmbedding" vector(50),
+    "nextEmbedding" vector(128),
     "nextError" DOUBLE PRECISION
 );
 
