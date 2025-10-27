@@ -1,4 +1,4 @@
-import { MfStepMedia, MfStepUser, MfStep, MfStats } from "@db/sql.ts";
+import { MfStepMediaAffinity, MfStep, MfStats } from "@db/sql.ts";
 import { MakeStream, StreamResponse } from "hx-stream/server";
 import { renderToString } from "react-dom/server";
 import { RouteContext } from "htmx-router";
@@ -14,11 +14,8 @@ export async function action({ request, cookie, headers }: RouteContext) {
 	return MakeStream({ render: renderToString, highWaterMark: 1000, abortSignal: request.signal }, Compute);
 }
 
-const LEARNING_RATE = {
-	media: 0.1,
-	user:  0.002
-};
-const MAX_STEPS  = 30;
+const LEARNING_RATE = 0.001;
+const MAX_STEPS  = 10;
 const SCALE  = 1/1000;
 const PARRALLEL = 20;
 const INTERVAL = 700;
@@ -31,25 +28,23 @@ async function Compute(stream: StreamResponse<true>) {
 		<div className="media">
 			<progress style={{ width: "100%" }} max={100}></progress>
 		</div>
-		<div className="user">
-			<progress style={{ width: "100%" }} value={0} max={100}></progress>
-		</div>
 		<div className="status"></div>
 	</>);
 
-	let firstDraw = true;
-	const targets = await GetTargets();
+	const targets = await prisma.mfFactor.findMany({
+		select: { id: true },
+		where:  { type: 'MEDIA' }
+	});
+
 	for (let step=0; step<MAX_STEPS; step++) {
 		const start = Date.now();
-
-		stream.send(".user", "innerHTML", `<progress style="width: 100%" value={0} max="${targets.user.length}" />`);
 
 		let nextDraw = Date.now() + INTERVAL;
 		await JobQueue({
 			concurrency: PARRALLEL,
-			tasks: targets.media,
-			task: async (mediaID) => {
-				await prisma.$queryRawTyped(MfStepMedia(mediaID, LEARNING_RATE.media));
+			tasks: targets,
+			task: async (media) => {
+				await prisma.$queryRawTyped(MfStepMediaAffinity(media.id, LEARNING_RATE));
 				return;
 			},
 
@@ -63,29 +58,9 @@ async function Compute(stream: StreamResponse<true>) {
 		});
 		const mediaStats = (await prisma.$queryRawTyped(MfStats('MEDIA')))[0];
 		await prisma.$queryRawTyped(MfStep('MEDIA'));
-		stream.send(".media", "innerHTML", `<progress style="width: 100%" value="${targets.media.length}" max="${targets.media.length}" />`);
-
-		await JobQueue({
-			concurrency: PARRALLEL,
-			tasks: targets.user,
-			task: async (userID) => {
-				await prisma.$queryRawTyped(MfStepUser(userID, LEARNING_RATE.media));
-				return;
-			},
-
-			notify: (completed, total) => {
-				const n = Date.now();
-				if (n < nextDraw) return;
-
-				stream.send(".user", "innerHTML", `<progress style="width: 100%" value="${completed}" max="${total}" />`);
-				nextDraw = n + INTERVAL;
-			}
-		});
-		const userStats = (await prisma.$queryRawTyped(MfStats('USER')))[0];
-		await prisma.$queryRawTyped(MfStep('USER'));
+		stream.send(".media", "innerHTML", `<progress style="width: 100%" value="${targets.length}" max="${targets.length}" />`);
 
 		if (stream.readyState === StreamResponse.CLOSED) return;
-		stream.send(".media", "innerHTML", `<progress style="width: 100%" value="${targets.user.length}" max="${targets.user.length}" />`);
 		stream.send(".status", "afterbegin", <div style={{
 			marginBlock: '1rem',
 			marginLeft:  '1em',
@@ -99,14 +74,8 @@ async function Compute(stream: StreamResponse<true>) {
 			<div>{step+1} of {MAX_STEPS}</div>
 			<div className="text-right">{((Date.now()-start)*SCALE).toFixed(2)} sec</div>
 			{RenderStats(mediaStats)}
-			{RenderStats(userStats)}
 		</div>);
 		stream.send(".iteration", "innerHTML", `<progress style="width: 100%" value="${step+1}" max="${MAX_STEPS}" />`);
-
-		if (firstDraw) {
-			firstDraw = false;
-			await prisma.mfFactor.deleteMany({ where: { nextError: null} });
-		}
 	}
 
 	stream.close();
