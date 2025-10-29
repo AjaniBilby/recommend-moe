@@ -7,12 +7,12 @@ model MfFactor {
 	id   Int
 	type MfFactorType
 
-	@@unique([type, id])
+	@@id([type, id])
 
-	embedding Unsupported("vector(100)") /// MF vector
+	embedding Unsupported("halfvec(96)") /// MF vector
 	error     Float
 
-	nextEmbedding Unsupported("vector(100)")? /// MF vector
+	nextEmbedding Unsupported("halfvec(96)")? /// MF vector
 	nextError     Float?
 }
 

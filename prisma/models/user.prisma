@@ -4,13 +4,13 @@ model User {
 	scores   UserMediaScore[]
 	accounts ExternalUser[]
 
-	affinitiesAsA UserAffinity[] @relation("UserAffinityA")
-  affinitiesAsB UserAffinity[] @relation("UserAffinityB")
+	affinitiesAsA UserAffinity[] @relation("UserAffinityA") @ignore
+  affinitiesAsB UserAffinity[] @relation("UserAffinityB") @ignore
+
+	embedding Unsupported("halfvec(96)")? /// MF vector
 
 	createdAt DateTime @default(now())
 	updatedAt DateTime @default(now()) @updatedAt
-
-	embedding Unsupported("vector(100)")? /// MF vector
 
 	sessions UserSession[]
 	tokens UserAuthToken[]
@@ -21,7 +21,7 @@ model User {
 
 model ExternalUser {
 	type ExternalKind
-	id   String @id
+	id   String
 
 	user   User @relation(fields: [userID], references: [id], onUpdate: Cascade, onDelete: Cascade)
 	userID Int
@@ -29,7 +29,7 @@ model ExternalUser {
 	// any extra data needed to be stored
 	data Json @default("{}")
 
-	@@unique([userID, type])
+	@@id([userID, type])
 }
 
 
@@ -40,7 +40,7 @@ model UserMediaScore {
 
 	media   Media @relation(fields: [mediaID], references: [id], onUpdate: Cascade, onDelete: Cascade)
 	mediaID Int
-	@@unique([userID, mediaID]) // only used to prevent duplicates
+	@@id([userID, mediaID])
 
 	@@index([mediaID, userID, score]) // covering index
 
@@ -55,7 +55,7 @@ model UserAffinity {
 	aID Int /// aID < bID
 	b   User @relation("UserAffinityB",fields: [bID], references: [id], onUpdate: Cascade, onDelete: Cascade)
 	bID Int /// aID < bID
-	@@unique([aID, bID])
+	@@id([aID, bID])
 
 	@@index([aID, score(sort: Desc)])
 	@@index([bID, score(sort: Desc)])
@@ -67,6 +67,8 @@ model UserAffinity {
 
 	stale Boolean @default(true)
 	@@index([stale, aID, bID]) // allow index only reads
+
+	@@ignore
 }
 
 

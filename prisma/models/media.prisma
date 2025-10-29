@@ -25,9 +25,10 @@ model Media {
 	staleStats Boolean @default(true)
 	@@index([staleStats, id])
 
-	// TODO
-	// updatedAt DateTime @default(now()) @updatedAt
-	// createdAt DateTime @default(now())
+	embedding Unsupported("halfvec(96)")? /// MF vector
+
+	updatedAt DateTime @default(now()) @updatedAt
+	createdAt DateTime @default(now())
 
 	userScores UserMediaScore[]
 	referred   ExternalMedia[]
@@ -36,8 +37,6 @@ model Media {
 	affinitiesAsB MediaAffinity[] @relation("MediaAffinityB")
 
 	calculation MediaRanking? @ignore
-
-	embedding Unsupported("vector(100)")? /// MF vector
 
 	embeddings MediaEmbedding[]
 	titles     MediaTitle[]
@@ -49,7 +48,7 @@ model MediaTitle {
 	mediaID Int
 	media   Media @relation(fields: [mediaID], references: [id], onUpdate: Cascade, onDelete: Cascade)
 
-	@@unique([mediaID, type])
+	@@id([mediaID, type])
 
 	title String @db.Citext()
 
@@ -61,7 +60,7 @@ model MediaEmbedding {
 
 	mediaID Int
 	media   Media @relation(fields: [mediaID], references: [id], onUpdate: Cascade, onDelete: Cascade)
-	@@unique([mediaID, type])
+	@@id([mediaID, type])
 
 	embedding Unsupported("vector(384)")
 
