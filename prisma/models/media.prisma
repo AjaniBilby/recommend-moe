@@ -94,7 +94,7 @@ model MediaAffinity {
 	b   Media @relation("MediaAffinityB",fields: [bID], references: [id], onUpdate: Cascade, onDelete: Cascade)
 	bID Int /// aID < bID
 
-	@@unique([aID, bID])
+	@@id([aID, bID])
 	@@index([aID, score(sort: Desc), overlap])
 	@@index([bID, score(sort: Desc), overlap])
 

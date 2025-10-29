@@ -223,16 +223,25 @@ export class TaskThrottle {
 }
 
 
-export function JobQueue<T>(props: {
-	tasks: Array<T>,
-	task: (task: T, abort?: AbortSignal) => Promise<void>,
-	concurrency: number,
-	abort?: AbortSignal,
-
-	notify?: (completed: number, total: number) => void
-}): Promise<void> {
+// deno-lint-ignore no-explicit-any
+export function JobQueue<T extends Array<any> | undefined>(props: T extends Array<any>
+	? {
+		tasks: T,
+		task: (task: T[number], abort?: AbortSignal) => Promise<void>,
+		concurrency: number,
+		abort?: AbortSignal,
+		notify?: (completed: number, total: number) => void
+	}
+	: {
+		tasks?: undefined,
+		task: (abort: AbortSignal) => Promise<void>,
+		concurrency: number,
+		abort: AbortSignal, // Required for infinite mode
+		notify?: (completed: number) => void
+	}
+): Promise<void> {
 	return new Promise<void>((resolve, reject) => {
-		if (props.tasks.length < 1) return resolve();
+		if (props.tasks && props.tasks.length < 1) return resolve();
 
 		let completed = 0;
 		let cursor = 0;
@@ -243,35 +252,64 @@ export function JobQueue<T>(props: {
 			next();
 		}
 
-		const next = () => {
-			completed++;
-			active--; // make self as done
-			queue();  // queue more jobs if possible
+		// Using conditional lambda construction to reduce runtime ifs
+		const notify = props.notify
+			? ( props.tasks
+				? () => props.notify!(completed, props.tasks.length)
+				: () => props.notify!(completed)
+			) : undefined;
 
-			if (props.notify) props.notify(completed, props.tasks.length);
-			if (active !== 0) return; // other jobs are still running
+		const next = props.tasks
+			? () => {
+				completed++;
+				active--; // make self as done
+				queue();  // queue more jobs if possible
 
-			if (completed < props.tasks.length) {
-				reject(new Error("Not all tasks completed, but no jobs are queued"));
-				return;
+				if (notify) notify();
+				if (active !== 0) return; // other jobs are still running
+
+				if (props.tasks && completed < props.tasks.length) {
+					reject(new Error("Not all tasks completed, but no jobs are queued"));
+					return;
+				}
+
+				// all jobs done
+				return resolve();
 			}
+			: () => {
+				completed++;
+				active--; // make self as done
+				queue();  // queue more jobs if possible
 
-			// all jobs done
-			return resolve();
-		}
-		const queue = () => {
-			if (props.abort?.aborted) return;
+				if (notify) notify();
+				if (active !== 0) return; // other jobs are still running
 
-			while (active < props.concurrency) {
-				if (cursor >= props.tasks.length) break;
+				// all jobs done
+				return resolve();
+			};
 
-				props.task(props.tasks[cursor], props.abort)
-					.then(next)
-					.catch(error);
-				cursor++;
-				active++;
+		const queue = props.tasks
+			? () => {
+				if (props.abort?.aborted) return;
+
+				while (active < props.concurrency) {
+					if (cursor >= props.tasks.length) break;
+
+					const val = props.tasks[cursor];
+					props.task(val, props.abort).then(next).catch(error);
+					cursor++;
+					active++;
+				}
 			}
-		}
+			: () => {
+				if (props.abort?.aborted) return;
+
+				while (active < props.concurrency) {
+					props.task(props.abort).then(next).catch(error);
+					cursor++;
+					active++;
+				}
+			}
 
 		queue();
 	});

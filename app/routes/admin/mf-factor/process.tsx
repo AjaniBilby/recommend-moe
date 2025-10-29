@@ -79,7 +79,7 @@ async function Compute(stream: StreamResponse<true>) {
 
 				stream.send(".user", "innerHTML", `<progress style="width: 100%" value="${completed}" max="${total}" />`);
 				nextDraw = n + INTERVAL;
-			}
+			},
 		});
 		const userStats = (await prisma.$queryRawTyped(MfStats('USER')))[0];
 		await prisma.$queryRawTyped(MfStep('USER'));

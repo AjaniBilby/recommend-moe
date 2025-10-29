@@ -4,6 +4,7 @@ WITH "stale" AS (
 	FROM "MediaAffinity"
 	WHERE ("aID" = $1::int or "bID" = $1::int) and "stale" = true
 	LIMIT 100
+	FOR UPDATE SKIP LOCKED
 ), "updates" AS (
 	SELECT s."aID", s."bID", c."score", c."overlap"
 	FROM "stale" s
