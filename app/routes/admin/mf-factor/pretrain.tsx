@@ -14,7 +14,7 @@ export async function action({ request, cookie, headers }: RouteContext) {
 	return MakeStream({ render: renderToString, highWaterMark: 1000, abortSignal: request.signal }, Compute);
 }
 
-const LEARNING_RATE = 0.001;
+const LEARNING_RATE = 0.0001;
 const MAX_STEPS  = 10;
 const SCALE  = 1/1000;
 const PARRALLEL = 20;
@@ -36,6 +36,7 @@ async function Compute(stream: StreamResponse<true>) {
 		where:  { type: 'MEDIA' }
 	});
 
+	let firstDraw = true;
 	for (let step=0; step<MAX_STEPS; step++) {
 		const start = Date.now();
 
@@ -76,6 +77,11 @@ async function Compute(stream: StreamResponse<true>) {
 			{RenderStats(mediaStats)}
 		</div>);
 		stream.send(".iteration", "innerHTML", `<progress style="width: 100%" value="${step+1}" max="${MAX_STEPS}" />`);
+
+		if (firstDraw) {
+			firstDraw = false;
+			await prisma.mfFactor.deleteMany({ where: { nextError: null, type: 'MEDIA' } });
+		}
 	}
 
 	stream.close();

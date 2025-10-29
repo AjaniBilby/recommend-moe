@@ -9,13 +9,13 @@ WITH "target" AS (
 	FROM (
 		 SELECT a."aID" as "id", a."score"
 		 FROM "MediaAffinity" a
-		 WHERE a."bID" = $1 and a."overlap" > 10 and a."score" > 0
+		 WHERE a."bID" = $1 and a."overlap" > 100 and a."score" > 0
 
 		 UNION ALL
 
 		 SELECT a."aID" as "id", a."score"
 		 FROM "MediaAffinity" a
-		 WHERE a."bID" = $1 and a."overlap" > 10 and a."score" > 0
+		 WHERE a."bID" = $1 and a."overlap" > 100 and a."score" > 0
 	) s
 	INNER JOIN "MfFactor" f ON f."type" = 'MEDIA' and f."id" = s."id"
 ), "errors" AS (
