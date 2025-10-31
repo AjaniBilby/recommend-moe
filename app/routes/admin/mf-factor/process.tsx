@@ -47,6 +47,26 @@ async function Compute(stream: StreamResponse<true>) {
 		let nextDraw = Date.now() + INTERVAL;
 		await JobQueue({
 			concurrency: PARRALLEL,
+			tasks: targets.user,
+			task: async (userID) => {
+				await prisma.$queryRawTyped(MfStepUser(userID, LEARNING_RATE.media));
+				return;
+			},
+
+			notify: (completed, total) => {
+				const n = Date.now();
+				if (n < nextDraw) return;
+
+				stream.send(".user", "innerHTML", `<progress style="width: 100%" value="${completed}" max="${total}" />`);
+				nextDraw = n + INTERVAL;
+			},
+		});
+		const userStats = (await prisma.$queryRawTyped(MfStats('USER')))[0];
+		await prisma.$queryRawTyped(MfStep('USER'));
+
+
+		await JobQueue({
+			concurrency: PARRALLEL,
 			tasks: targets.media,
 			task: async (mediaID) => {
 				await prisma.$queryRawTyped(MfStepMedia(mediaID, LEARNING_RATE.media));
@@ -64,25 +84,6 @@ async function Compute(stream: StreamResponse<true>) {
 		const mediaStats = (await prisma.$queryRawTyped(MfStats('MEDIA')))[0];
 		await prisma.$queryRawTyped(MfStep('MEDIA'));
 		stream.send(".media", "innerHTML", `<progress style="width: 100%" value="${targets.media.length}" max="${targets.media.length}" />`);
-
-		await JobQueue({
-			concurrency: PARRALLEL,
-			tasks: targets.user,
-			task: async (userID) => {
-				await prisma.$queryRawTyped(MfStepUser(userID, LEARNING_RATE.media));
-				return;
-			},
-
-			notify: (completed, total) => {
-				const n = Date.now();
-				if (n < nextDraw) return;
-
-				stream.send(".user", "innerHTML", `<progress style="width: 100%" value="${completed}" max="${total}" />`);
-				nextDraw = n + INTERVAL;
-			},
-		});
-		const userStats = (await prisma.$queryRawTyped(MfStats('USER')))[0];
-		await prisma.$queryRawTyped(MfStep('USER'));
 
 		if (stream.readyState === StreamResponse.CLOSED) return;
 		stream.send(".media", "innerHTML", `<progress style="width: 100%" value="${targets.user.length}" max="${targets.user.length}" />`);

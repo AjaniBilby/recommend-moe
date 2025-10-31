@@ -7,17 +7,18 @@ WITH "target" AS (
 ), "samples" AS (
 	SELECT s."score", f."embedding"
 	FROM (
-		 SELECT a."aID" as "id", a."score"
+		 SELECT a."bID" as "id", a."score"
 		 FROM "MediaAffinity" a
-		 WHERE a."bID" = $1 and a."overlap" > 100 and a."score" > 0
+		 WHERE a."bID" = $1 and a."overlap" > 100
 
 		 UNION ALL
 
 		 SELECT a."aID" as "id", a."score"
 		 FROM "MediaAffinity" a
-		 WHERE a."bID" = $1 and a."overlap" > 100 and a."score" > 0
+		 WHERE a."bID" = $1 and a."overlap" > 100
 	) s
 	INNER JOIN "MfFactor" f ON f."type" = 'MEDIA' and f."id" = s."id"
+	WHERE s."score" is not null and s."score" > 0
 ), "errors" AS (
 	SELECT (1.0 - s."score") - (t."embedding" <-> s."embedding") as "error",
 		t."embedding"
@@ -30,8 +31,10 @@ WITH "target" AS (
 		) as "grad",
 		AVG("error") as "error"
 	FROM "errors"
+	WHERE "error" is not null
 ), "step" AS (
-	SELECT t."embedding" + (array_fill($2::float, '{96}')::vector(96) * g."grad")::halfvec(96) as "embedding", g."error"
+	SELECT g."error", t."embedding"
+		+ (array_fill(COALESCE($2::float, 0.0), '{96}')::vector(96) * g."grad")::halfvec(96) as "embedding"
 	FROM "grad" g
 	CROSS JOIN "target" t
 )
@@ -39,4 +42,5 @@ WITH "target" AS (
 UPDATE "MfFactor" f
 SET "nextEmbedding" = n."embedding", "nextError" = n."error"
 FROM "step" n
-WHERE f."type" = 'MEDIA' and f."id" = $1::int;
+WHERE f."type" = 'MEDIA' and f."id" = $1::int
+RETURNING n."embedding", n."error";

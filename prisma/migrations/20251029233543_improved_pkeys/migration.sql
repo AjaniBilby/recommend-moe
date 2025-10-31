@@ -20,3 +20,5 @@ DROP INDEX "public"."MediaTitle_mediaID_type_key";
 DROP INDEX "public"."MfFactor_type_id_key";
 DROP INDEX "public"."UserAffinity_aID_bID_key";
 DROP INDEX "public"."UserMediaScore_userID_mediaID_key";
+
+ALTER TABLE "MediaAffinity" ADD CONSTRAINT "MediaAffinity_aID_bID_check" CHECK ("aID" < "bID");
