@@ -16,7 +16,7 @@ export async function action({ request, cookie, headers }: RouteContext) {
 
 const LEARNING_RATE = {
 	media: 0.1,
-	user:  0.002
+	user:  0.1
 };
 const MAX_STEPS  = 30;
 const SCALE  = 1/1000;
@@ -42,32 +42,13 @@ async function Compute(stream: StreamResponse<true>) {
 	for (let step=0; step<MAX_STEPS; step++) {
 		const start = Date.now();
 
-		stream.send(".user", "innerHTML", `<progress style="width: 100%" value={0} max="${targets.user.length}" />`);
+		stream.send(".media", "innerHTML", `<progress style="width: 100%" value="0" max="${targets.media.ids.length}" />`);
+		stream.send(".user",  "innerHTML", `<progress style="width: 100%" value="0" max="${targets.user.ids.length}"  />`);
 
 		let nextDraw = Date.now() + INTERVAL;
 		await JobQueue({
 			concurrency: PARRALLEL,
-			tasks: targets.user,
-			task: async (userID) => {
-				await prisma.$queryRawTyped(MfStepUser(userID, LEARNING_RATE.media));
-				return;
-			},
-
-			notify: (completed, total) => {
-				const n = Date.now();
-				if (n < nextDraw) return;
-
-				stream.send(".user", "innerHTML", `<progress style="width: 100%" value="${completed}" max="${total}" />`);
-				nextDraw = n + INTERVAL;
-			},
-		});
-		const userStats = (await prisma.$queryRawTyped(MfStats('USER')))[0];
-		await prisma.$queryRawTyped(MfStep('USER'));
-
-
-		await JobQueue({
-			concurrency: PARRALLEL,
-			tasks: targets.media,
+			tasks: targets.media.ids,
 			task: async (mediaID) => {
 				await prisma.$queryRawTyped(MfStepMedia(mediaID, LEARNING_RATE.media));
 				return;
@@ -81,12 +62,31 @@ async function Compute(stream: StreamResponse<true>) {
 				nextDraw = n + INTERVAL;
 			}
 		});
-		const mediaStats = (await prisma.$queryRawTyped(MfStats('MEDIA')))[0];
 		await prisma.$queryRawTyped(MfStep('MEDIA'));
-		stream.send(".media", "innerHTML", `<progress style="width: 100%" value="${targets.media.length}" max="${targets.media.length}" />`);
+		const mediaStats = (await prisma.$queryRawTyped(MfStats('MEDIA')))[0];
+		stream.send(".media", "innerHTML", `<progress style="width: 100%" value="${targets.media.ids.length}" max="${targets.media.ids.length}" />`);
+
+		await JobQueue({
+			concurrency: PARRALLEL,
+			tasks: targets.user.ids,
+			task: async (userID) => {
+				await prisma.$queryRawTyped(MfStepUser(userID, LEARNING_RATE.media));
+				return;
+			},
+
+			notify: (completed, total) => {
+				const n = Date.now();
+				if (n < nextDraw) return;
+
+				stream.send(".user", "innerHTML", `<progress style="width: 100%" value="${completed}" max="${total}" />`);
+				nextDraw = n + INTERVAL;
+			},
+		});
+		await prisma.$queryRawTyped(MfStep('USER'));
+		const userStats = (await prisma.$queryRawTyped(MfStats('USER')))[0];
+		stream.send(".user",  "innerHTML", `<progress style="width: 100%" value="${targets.user.ids.length}"  max="${targets.user.ids.length}"  />`);
 
 		if (stream.readyState === StreamResponse.CLOSED) return;
-		stream.send(".media", "innerHTML", `<progress style="width: 100%" value="${targets.user.length}" max="${targets.user.length}" />`);
 		stream.send(".status", "afterbegin", <div style={{
 			marginBlock: '1rem',
 			marginLeft:  '1em',
@@ -99,16 +99,19 @@ async function Compute(stream: StreamResponse<true>) {
 			<b>Step</b>
 			<div>{step+1} of {MAX_STEPS}</div>
 			<div className="text-right">{((Date.now()-start)*SCALE).toFixed(2)} sec</div>
-			{RenderStats(mediaStats)}
-			{RenderStats(userStats)}
+			{RenderStats(targets.media, mediaStats)}
+			{RenderStats(targets.user,  userStats)}
 		</div>);
 		stream.send(".iteration", "innerHTML", `<progress style="width: 100%" value="${step+1}" max="${MAX_STEPS}" />`);
 
 		if (firstDraw) {
 			firstDraw = false;
-			await prisma.mfFactor.deleteMany({ where: { nextError: null} });
+			await prisma.mfFactor.deleteMany({ where: { nextError: null } });
 		}
 	}
+
+	stream.send(".media", "innerHTML", `<progress style="width: 100%" value="${targets.media.ids.length}" max="${targets.media.ids.length}" />`);
+	stream.send(".media", "innerHTML", `<progress style="width: 100%" value="${targets.user.ids.length}"  max="${targets.user.ids.length}"  />`);
 
 	stream.close();
 }
@@ -125,15 +128,23 @@ async function GetTargets() {
 	});
 
 	return {
-		media: medias.map(x => x.id),
-		user:  users.map(x => x.id),
+		media: {
+			ids: medias.map(x => x.id),
+			error: 0
+		},
+		user: {
+			ids: users.map(x => x.id),
+			error: 0
+		},
 	}
 }
 
 
-function RenderStats(s: { type: 'MEDIA' | 'USER', error: number | null, next: number | null }) {
-	const errorValue = s.error || 0;
-	const nextValue  = s.next  || 0;
+function RenderStats(ctx: { error: number }, s: { type: 'MEDIA' | 'USER', error: number | null }) {
+	const errorValue = ctx.error || 0;
+	const nextValue  = s.error   || 0;
+
+	ctx.error = nextValue;
 
 	let change;
 	if (errorValue === 0) {

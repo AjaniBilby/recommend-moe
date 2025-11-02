@@ -116,7 +116,7 @@ async function Compute(stream: StreamResponse<true>, props: { userID: number }) 
 
 
 async function* Chunks(token: string) {
-	let next: string | null = `https://api.myanimelist.net/v2/users/@me/animelist?fields=list_status?limit=1000`;
+	let next: string | null = `https://api.myanimelist.net/v2/users/@me/animelist?fields=list_status&limit=1000`;
 	while (next) {
 		const req = await fetch(next, {
 			headers: { Authorization: `Bearer ${token} `}

@@ -19,7 +19,7 @@ WITH "target" AS (
 			-- need to use full vector here to prevent underflow errors
 			(array_fill("error", '{96}')::vector(96) * "embedding"::vector(96))
 		) as "grad",
-		AVG("error") as "error"
+		SUM(ABS("error")) as "error"
 	FROM "errors"
 ), "step" AS (
 	SELECT t."embedding" + (array_fill($2::float, '{96}')::vector(96) * g."grad")::halfvec(96) as "embedding", g."error"

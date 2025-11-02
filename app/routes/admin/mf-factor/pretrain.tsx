@@ -14,7 +14,7 @@ export async function action({ request, cookie, headers }: RouteContext) {
 	return MakeStream({ render: renderToString, highWaterMark: 1000, abortSignal: request.signal }, Compute);
 }
 
-const LEARNING_RATE = 0.1;
+const LEARNING_RATE = 0.01;
 const MAX_STEPS  = 10;
 const SCALE  = 1/1000;
 const PARRALLEL = 20;
