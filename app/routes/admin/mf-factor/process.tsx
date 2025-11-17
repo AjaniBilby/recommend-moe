@@ -15,8 +15,8 @@ export async function action({ request, cookie, headers }: RouteContext) {
 }
 
 const LEARNING_RATE = {
-	media: 0.1,
-	user:  0.1
+	media: 0.05,
+	user:  0.01
 };
 const MAX_STEPS  = 30;
 const SCALE  = 1/1000;
@@ -108,6 +108,8 @@ async function Compute(stream: StreamResponse<true>) {
 			firstDraw = false;
 			await prisma.mfFactor.deleteMany({ where: { nextError: null } });
 		}
+
+		await prisma.$executeRaw`VACUUM ANALYZE "MfFactor";`;
 	}
 
 	stream.send(".media", "innerHTML", `<progress style="width: 100%" value="${targets.media.ids.length}" max="${targets.media.ids.length}" />`);

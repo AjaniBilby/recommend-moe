@@ -3,7 +3,6 @@ WITH "stale" AS (
 	SELECT "aID", "bID"
 	FROM "MediaAffinity"
 	WHERE "stale" = true
-	ORDER BY "aID", "bID" -- better page caching for repeated calls
 	LIMIT $1::int
 	FOR UPDATE SKIP LOCKED
 ), "updates" AS (

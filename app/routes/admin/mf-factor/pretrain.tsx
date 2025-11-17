@@ -14,7 +14,7 @@ export async function action({ request, cookie, headers }: RouteContext) {
 	return MakeStream({ render: renderToString, highWaterMark: 1000, abortSignal: request.signal }, Compute);
 }
 
-const LEARNING_RATE = 0.01;
+const LEARNING_RATE = 0.05;
 const MAX_STEPS  = 10;
 const SCALE  = 1/1000;
 const PARRALLEL = 20;
@@ -31,10 +31,7 @@ async function Compute(stream: StreamResponse<true>) {
 		<div className="status"></div>
 	</>);
 
-	const targets = await prisma.mfFactor.findMany({
-		select: { id: true },
-		where:  { type: 'MEDIA' }
-	});
+	const targets = await GetTargets();
 
 	let firstDraw = true;
 	for (let step=0; step<MAX_STEPS; step++) {
@@ -43,9 +40,9 @@ async function Compute(stream: StreamResponse<true>) {
 		let nextDraw = Date.now() + INTERVAL;
 		await JobQueue({
 			concurrency: PARRALLEL,
-			tasks: targets,
-			task: async (media) => {
-				await prisma.$queryRawTyped(MfStepMediaAffinity(media.id, LEARNING_RATE));
+			tasks: targets.media.ids,
+			task: async (mediaID) => {
+				await prisma.$queryRawTyped(MfStepMediaAffinity(mediaID, LEARNING_RATE));
 				return;
 			},
 
@@ -59,7 +56,7 @@ async function Compute(stream: StreamResponse<true>) {
 		});
 		const mediaStats = (await prisma.$queryRawTyped(MfStats('MEDIA')))[0];
 		await prisma.$queryRawTyped(MfStep('MEDIA'));
-		stream.send(".media", "innerHTML", `<progress style="width: 100%" value="${targets.length}" max="${targets.length}" />`);
+		stream.send(".media", "innerHTML", `<progress style="width: 100%" value="${targets.media.ids.length}" max="${targets.media.ids.length}" />`);
 
 		if (stream.readyState === StreamResponse.CLOSED) return;
 		stream.send(".status", "afterbegin", <div style={{
@@ -74,7 +71,7 @@ async function Compute(stream: StreamResponse<true>) {
 			<b>Step</b>
 			<div>{step+1} of {MAX_STEPS}</div>
 			<div className="text-right">{((Date.now()-start)*SCALE).toFixed(2)} sec</div>
-			{RenderStats(mediaStats)}
+			{RenderStats(targets.media, mediaStats)}
 		</div>);
 		stream.send(".iteration", "innerHTML", `<progress style="width: 100%" value="${step+1}" max="${MAX_STEPS}" />`);
 
@@ -93,21 +90,20 @@ async function GetTargets() {
 		where:  { type: 'MEDIA' }
 	});
 
-	const users = await prisma.mfFactor.findMany({
-		select: { id: true },
-		where:  { type: 'USER' }
-	});
-
 	return {
-		media: medias.map(x => x.id),
-		user:  users.map(x => x.id),
+		media: {
+			ids: medias.map(x => x.id),
+			error: 0
+		},
 	}
 }
 
 
-function RenderStats(s: { type: 'MEDIA' | 'USER', error: number | null, next: number | null }) {
-	const errorValue = s.error || 0;
-	const nextValue  = s.next  || 0;
+function RenderStats(ctx: { error: number }, s: { type: 'MEDIA' | 'USER', error: number | null }) {
+	const errorValue = ctx.error || 0;
+	const nextValue  = s.error   || 0;
+
+	ctx.error = nextValue;
 
 	let change;
 	if (errorValue === 0) {

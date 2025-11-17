@@ -97,13 +97,11 @@ model MediaAffinity {
 	@@index([aID, score(sort: Desc), overlap])
 	@@index([bID, score(sort: Desc), overlap])
 
-	@@index([aID, bID, overlap(sort: Desc)])
-
 	score     Float @default(0) // cosine similarly (based on user scores)
 	overlap   Int   @default(0)
 
 	updatedAt DateTime @default(now()) @updatedAt
 
 	stale Boolean @default(true)
-	@@index([stale, aID, bID]) // allow index only reads
+	@@index([stale]) // allow index only reads
 }

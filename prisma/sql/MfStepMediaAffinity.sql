@@ -27,14 +27,14 @@ WITH "target" AS (
 ), "grad" AS (
 	SELECT AVG(
 			-- need to use full vector here to prevent underflow errors
-			(array_fill("error", '{96}')::vector(96) * "embedding"::vector(96))
+			(array_fill("error", '{144}')::vector(144) * "embedding"::vector(144))
 		) as "grad",
-		AVG("error") as "error"
+		SUM(ABS("error")) as "error"
 	FROM "errors"
 	WHERE "error" is not null
 ), "step" AS (
 	SELECT g."error", t."embedding"
-		+ (array_fill(COALESCE($2::float, 0.0), '{96}')::vector(96) * g."grad")::halfvec(96) as "embedding"
+		+ (array_fill(COALESCE($2::float, 0.0), '{144}')::vector(144) * g."grad")::halfvec(144) as "embedding"
 	FROM "grad" g
 	CROSS JOIN "target" t
 )
