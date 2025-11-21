@@ -14,4 +14,4 @@ CREATE UNIQUE INDEX "MfFactor_type_id_key" ON "MfFactor"("type", "id");
 
 -- Add columns to store computed MF Factors
 ALTER TABLE "Media" ADD COLUMN "embedding" halfvec(144);
-ALTER TABLE "User" ADD COLUMN  "embedding" halfvec(144);
+ALTER TABLE "User"  ADD COLUMN "embedding" halfvec(144);

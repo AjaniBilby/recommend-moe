@@ -1,6 +1,6 @@
 -- @param $1:embedding
 WITH "ranking" AS (
-	SELECT "mediaID", MAX(-("embedding" <#> $1::float[]::vector)) as "similarity"
+	SELECT "mediaID", MAX(-("embedding" <=> $1::float[]::vector)) as "similarity"
 	FROM "MediaEmbedding"
 	GROUP BY "mediaID"
 	ORDER BY "similarity" desc

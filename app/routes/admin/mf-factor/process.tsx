@@ -15,8 +15,8 @@ export async function action({ request, cookie, headers }: RouteContext) {
 }
 
 const LEARNING_RATE = {
-	media: 0.05,
-	user:  0.01
+	media: 0.1,
+	user:  0.1
 };
 const MAX_STEPS  = 30;
 const SCALE  = 1/1000;
@@ -87,7 +87,7 @@ async function Compute(stream: StreamResponse<true>) {
 		stream.send(".user",  "innerHTML", `<progress style="width: 100%" value="${targets.user.ids.length}"  max="${targets.user.ids.length}"  />`);
 
 		if (stream.readyState === StreamResponse.CLOSED) return;
-		stream.send(".status", "afterbegin", <div style={{
+		stream.send(".status", "beforeend", <div style={{
 			marginBlock: '1rem',
 			marginLeft:  '1em',
 
