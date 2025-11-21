@@ -15,8 +15,8 @@ export async function action({ request, cookie, headers }: RouteContext) {
 }
 
 const LEARNING_RATE = {
-	media: 0.1,
-	user:  0.1
+	media: 0.0002,
+	user:  0.0002
 };
 const MAX_STEPS  = 30;
 const SCALE  = 1/1000;

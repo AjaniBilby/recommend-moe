@@ -76,15 +76,6 @@ export function loader() {
 			<div id="mf-factor-init"></div>
 
 			<button type="button" className="secondary"
-				hx-put="/admin/mf-factor/pretrain"
-				hx-ext="hx-stream"
-				hx-swap="innerHTML"
-				hx-stream="on"
-				hx-target="#mf-factor-pretrain"
-			>Pretrain</button>
-			<div id="mf-factor-pretrain"></div>
-
-			<button type="button" className="secondary"
 				hx-put="/admin/mf-factor/process"
 				hx-ext="hx-stream"
 				hx-swap="innerHTML"

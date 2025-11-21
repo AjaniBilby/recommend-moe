@@ -18,7 +18,7 @@ WITH "current" AS (
 	FROM "samples" s
 	CROSS JOIN "current" c
 ), "gradient" AS (
-	SELECT AVG(
+	SELECT SUM(
 			array_fill("distance_current" - "distance_target", '{144}')::vector(144)
 			* l2_normalize("embedding_target" - "embedding_current")::vector(144)
 		) as "gradient",
