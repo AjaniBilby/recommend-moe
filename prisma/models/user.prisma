@@ -7,7 +7,7 @@ model User {
 	affinitiesAsA UserAffinity[] @relation("UserAffinityA") @ignore
   affinitiesAsB UserAffinity[] @relation("UserAffinityB") @ignore
 
-	embedding Unsupported("halfvec(96)")? /// MF vector
+	embedding Unsupported("halfvec(160)")? /// MF vector
 
 	createdAt DateTime @default(now())
 	updatedAt DateTime @default(now()) @updatedAt

@@ -1,4 +1,4 @@
-import { MfStepMedia, MfStepUser, MfStep, MfStats } from "@db/sql.ts";
+import { MfStepMedia, MfStepUser, MfStep, MfStats, MfSolveMedia, MfSolveUser } from "@db/sql.ts";
 import { MakeStream, StreamResponse } from "hx-stream/server";
 import { renderToString } from "react-dom/server";
 import { RouteContext } from "htmx-router";
@@ -15,8 +15,8 @@ export async function action({ request, cookie, headers }: RouteContext) {
 }
 
 const LEARNING_RATE = {
-	media: 0.0002,
-	user:  0.0002
+	media: 0.0003,
+	user:  0.0004
 };
 const MAX_STEPS  = 30;
 const SCALE  = 1/1000;
@@ -40,6 +40,8 @@ async function Compute(stream: StreamResponse<true>) {
 	let firstDraw = true;
 	const targets = await GetTargets();
 	for (let step=0; step<MAX_STEPS; step++) {
+		await prisma.$executeRaw`VACUUM ANALYZE "MfFactor";`;
+
 		const start = Date.now();
 
 		stream.send(".media", "innerHTML", `<progress style="width: 100%" value="0" max="${targets.media.ids.length}" />`);
@@ -108,8 +110,6 @@ async function Compute(stream: StreamResponse<true>) {
 			firstDraw = false;
 			await prisma.mfFactor.deleteMany({ where: { nextError: null } });
 		}
-
-		await prisma.$executeRaw`VACUUM ANALYZE "MfFactor";`;
 	}
 
 	stream.send(".media", "innerHTML", `<progress style="width: 100%" value="${targets.media.ids.length}" max="${targets.media.ids.length}" />`);

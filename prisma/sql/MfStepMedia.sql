@@ -19,14 +19,14 @@ WITH "current" AS (
 	CROSS JOIN "current" c
 ), "gradient" AS (
 	SELECT SUM(
-			array_fill("distance_current" - "distance_target", '{144}')::vector(144)
-			* l2_normalize("embedding_target" - "embedding_current")::vector(144)
+			array_fill("distance_current" - "distance_target", '{160}')::vector(160)
+			* l2_normalize("embedding_target" - "embedding_current")::vector(160)
 		) as "gradient",
 		SUM(ABS("distance_current" - "distance_target")) as "error_total"
 	FROM "factors"
 ), "step" AS (
 	SELECT g."error_total",
-		g."gradient" * array_fill($2::float, '{144}')::vector(144) + c."embedding" as "embedding"
+		g."gradient" * array_fill($2::float, '{160}')::vector(160) + c."embedding" as "embedding"
 	FROM "gradient" g
 	CROSS JOIN "current" c
 )
