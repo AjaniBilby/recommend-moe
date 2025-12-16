@@ -25,7 +25,7 @@ model Media {
 	staleStats Boolean @default(true)
 	@@index([staleStats, id])
 
-	embedding Unsupported("halfvec(160)")? /// MF vector
+	embedding Unsupported("halfvec(384)")? /// MF vector
 
 	updatedAt DateTime @default(now()) @updatedAt
 	createdAt DateTime @default(now())

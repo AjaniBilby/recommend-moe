@@ -17,7 +17,7 @@ WITH "stale" AS (
 )
 
 UPDATE "MediaAffinity" a
-SET "score" = u."score",
+SET "score" = CASE WHEN u."overlap" < 10 THEN NULL ELSE u."score" END,
 	"overlap" = u."overlap",
 	"stale" = FALSE,
 	"updatedAt" = now()

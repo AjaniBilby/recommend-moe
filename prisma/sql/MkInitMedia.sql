@@ -15,7 +15,30 @@ SELECT 'MEDIA', "id", l2_normalize(ARRAY[
 	random(), random(), random(), random(), random(), random(), random(), random(), random(), random(),
 	random(), random(), random(), random(), random(), random(), random(), random(), random(), random(),
 	random(), random(), random(), random(), random(), random(), random(), random(), random(), random(),
-	random(), random(), random(), random(), random(), random(), random(), random(), random(), random()
-]::halfvec(160)), 0.0
+	random(), random(), random(), random(), random(), random(), random(), random(), random(), random(),
+	random(), random(), random(), random(), random(), random(), random(), random(), random(), random(),
+	random(), random(), random(), random(), random(), random(), random(), random(), random(), random(),
+	random(), random(), random(), random(), random(), random(), random(), random(), random(), random(),
+	random(), random(), random(), random(), random(), random(), random(), random(), random(), random(),
+	random(), random(), random(), random(), random(), random(), random(), random(), random(), random(),
+	random(), random(), random(), random(), random(), random(), random(), random(), random(), random(),
+	random(), random(), random(), random(), random(), random(), random(), random(), random(), random(),
+	random(), random(), random(), random(), random(), random(), random(), random(), random(), random(),
+	random(), random(), random(), random(), random(), random(), random(), random(), random(), random(),
+	random(), random(), random(), random(), random(), random(), random(), random(), random(), random(),
+	random(), random(), random(), random(), random(), random(), random(), random(), random(), random(),
+	random(), random(), random(), random(), random(), random(), random(), random(), random(), random(),
+	random(), random(), random(), random(), random(), random(), random(), random(), random(), random(),
+	random(), random(), random(), random(), random(), random(), random(), random(), random(), random(),
+	random(), random(), random(), random(), random(), random(), random(), random(), random(), random(),
+	random(), random(), random(), random(), random(), random(), random(), random(), random(), random(),
+	random(), random(), random(), random(), random(), random(), random(), random(), random(), random(),
+	random(), random(), random(), random(), random(), random(), random(), random(), random(), random(),
+	random(), random(), random(), random(), random(), random(), random(), random(), random(), random(),
+	random(), random(), random(), random(), random(), random(), random(), random(), random(), random(),
+	random(), random(), random(), random(), random(), random(), random(), random(), random(), random(),
+	random(), random(), random(), random(), random(), random(), random(), random(), random(), random(),
+	random(), random(), random(), random()
+]::halfvec(384)), 0.0
 FROM "Media"
 WHERE "popularity" > 10;

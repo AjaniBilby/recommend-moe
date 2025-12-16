@@ -9,10 +9,10 @@ model MfFactor {
 
 	@@id([type, id])
 
-	embedding Unsupported("halfvec(160)") /// MF vector
+	embedding Unsupported("halfvec(384)") /// MF vector
 	error     Float
 
-	nextEmbedding Unsupported("halfvec(160)")? /// MF vector
+	nextEmbedding Unsupported("halfvec(384)")? /// MF vector
 	nextError     Float?
 }
 

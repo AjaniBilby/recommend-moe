@@ -6,6 +6,7 @@ dist/*
 
 *.pdf
 *.pem
+*.wasm
 
 postgres-data/*
 stdout.log
