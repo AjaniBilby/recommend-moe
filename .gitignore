@@ -7,6 +7,7 @@ dist/*
 *.pdf
 *.pem
 *.wasm
+*.bin
 
 postgres-data/*
 stdout.log

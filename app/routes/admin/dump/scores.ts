@@ -21,7 +21,7 @@ export async function loader({ request, cookie, headers }: RouteContext) {
 
 	const stream = new ReadableStream<Uint8Array>(
 		{ start(c) { Stream(c, request.signal).catch(console.error) }, },
-		{ highWaterMark: 0 },
+		{ highWaterMark: 3*4*100 },
 	);
 
 	return new Response(stream, { headers })
@@ -33,8 +33,6 @@ async function Stream(controller: ReadableStreamDefaultController<Uint8Array>, s
 	const buffer    = new ArrayBuffer(recordSize);
 	const view      = new DataView(buffer);
 	const uint8View = new Uint8Array(buffer);
-
-	console.log(controller);
 
 	let mediaID = -1;
 	let userID  = -1;
@@ -57,9 +55,6 @@ async function Stream(controller: ReadableStreamDefaultController<Uint8Array>, s
 		);
 
 		for (const score of chunk) {
-			mediaID = score.mediaID;
-			userID  = score.userID;
-
 			if (score.score === null) continue;
 			if (score.score <= 0    ) continue;
 			if (score.score >= 1    ) continue;
@@ -67,11 +62,14 @@ async function Stream(controller: ReadableStreamDefaultController<Uint8Array>, s
 			view.setUint32(0,  score.mediaID, true);
 			view.setUint32(4,  score.userID, true);
 			view.setFloat32(8, score.score, true);
-			controller!.enqueue(uint8View);
+			controller!.enqueue(uint8View.slice());
 		}
 
+		const last = chunk[chunk.length-1];
+		mediaID = last.mediaID;
+		userID  = last.userID;
+
 		offset += chunk.length;
-		console.log(offset, take, chunk[0]);
 	}
 
 	controller.close();
