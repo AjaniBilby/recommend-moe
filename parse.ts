@@ -1,9 +1,24 @@
 const RECORD_SIZE = 12;
 
+import { Insert_Score, Set_EmbeddingSize, Index, memory } from './wasm/mf-factor.wasm';
+
 const filePath = './scores.bin';
 let file: Deno.FsFile | null = null;
 
-try {
+Set_EmbeddingSize(128*3);
+
+await InsertScores();
+
+console.time('index');
+Index();
+console.timeEnd('index');
+
+// console.log(memory.buffer)
+await Deno.writeFile('dump.bin', new Uint8Array(memory.buffer));
+
+
+
+async function InsertScores() {
 	// Open the file
 	file = await Deno.open(filePath);
 
@@ -35,11 +50,12 @@ try {
 
 		for (let i=0; i<bytesRead; i += RECORD_SIZE) {
 			// Parse the data using Little Endian (true) to match the server
-			const mediaID = view.getUint32(0, true);
-			const userID  = view.getUint32(4, true);
-			const score   = view.getFloat32(8, true);
+			const mediaID = view.getUint32( i + 0, true);
+			const userID  = view.getUint32( i + 4, true);
+			const score   = view.getFloat32(i + 8, true);
 
 			// const p = userIDs.length;
+			Insert_Score(mediaID, userID, score);
 			InsertionSort(userID, userIDs);
 			// userSet.add(userID);
 			// if (userIDs.length != userSet.size) console.log(userIDs.length, userSet.size);
@@ -72,53 +88,41 @@ try {
 	for (let i=1; i<userIDs.length; i++) {
 		if (userIDs[i-1] >= userIDs[i]) console.log(userIDs[i-1], userIDs[i]);
 	}
-
-} catch (error) {
-	if (error instanceof Deno.errors.NotFound) {
-		console.error(`Error: File "${filePath}" not found.`);
-	} else {
-		console.error("An unexpected error occurred:", error);
-	}
-} finally {
-	// Always close the file handle
-	if (file) file.close();
 }
 
-function InsertionSort(userID: number, userIDs: number[]) {
-	let s = 0, i = 0, e = userIDs.length -1;
+function InsertionSort(id: number, userIDs: number[]) {
+	let si = 0, mi = 0, ei = userIDs.length == 0 ? 0 : userIDs.length -1;
 	while (true) {
-		i = Math.floor((e-s) / 2) + s;
+		mi = Math.floor((ei-si) / 2) + si;
 
-		const hit = userIDs[i];
-		if (hit === userID) return userIDs;
-		if (hit < userID) s = i;
-		else e = i;
+		const curr = userIDs[mi];
+		if (curr === id) return userIDs;
+		if (curr < id) si = mi;
+		else ei = mi;
 
-		if (s + 1 >= e) {
-			const _s = userIDs[s];
-			if (_s === userID) return userIDs;
+		if (si + 1 >= ei) {
+			const s_val = userIDs[si];
+			if (s_val === id) return userIDs;
 
-			const _e = userIDs[e];
-			if (_e === userID) return userIDs;
+			const e_val = userIDs[ei];
+			if (e_val === id) return userIDs;
 
-			if      (userID > _e) i = e + 1;
-			else if (userID < _s) i = s;
-			else                  i = e;
+			if      (id > e_val) mi = ei + 1;
+			else if (id < s_val) mi = si;
+			else             mi = ei;
 
 
 			break;
 		}
 	}
 
-	i = Math.max(0, i);
-
-	for (; i<userIDs.length; i++) {
-		const t = userIDs[i];
-		userIDs[i] = userID;
-		userID = t;
+	for (; mi<userIDs.length; mi++) {
+		const t = userIDs[mi];
+		userIDs[mi] = id;
+		id = t;
 	}
 
-	userIDs.push(userID);
+	userIDs.push(id);
 
 	return userIDs;
 }

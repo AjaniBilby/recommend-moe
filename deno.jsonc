@@ -16,6 +16,9 @@
 		"build:client": "deno run -A npm:vite build",
 		"build:server": "deno run -A npm:vite build --ssr app/entry.server.ts --outDir dist/server",
 
+		"build:wasm": "deno task 'build:wasm:*'",
+		"build:wasm:mf-factor": "wat2wasm ./wasm/mf-factor.wat -o ./wasm/mf-factor.wasm",
+
 		"compile": "deno compile -A production.ts --include build/* --include public/*",
 
 		"preview": "deno serve -A --env-file server.production.ts",
@@ -34,7 +37,7 @@
 		"~/": "./app/",
 
 		"@std/http": "jsr:@std/http@^1.0.4",
-		"@std/io": "jsr:@std/io",
+		"@std/io":   "jsr:@std/io",
 		"@std/path": "jsr:@std/path@^1.0.3",
 
 		"@deno/vite-plugin": "npm:@deno/vite-plugin@^1.0.4",
