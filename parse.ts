@@ -1,17 +1,25 @@
 const RECORD_SIZE = 12;
 
-import { Insert_Score, Set_EmbeddingSize, Index, memory } from './wasm/mf-factor.wasm';
+import { Insert_Score, Set_EmbeddingSize, Index, memory, GetMediaID } from './wasm/mf-factor.wasm';
 
 const filePath = './scores.bin';
 let file: Deno.FsFile | null = null;
 
 Set_EmbeddingSize(128*3);
 
-await InsertScores();
+const collection = await InsertScores();
 
 console.time('index');
-Index();
+await Index();
 console.timeEnd('index');
+
+for (let i=0; i<collection.length; i++) {
+	const a = collection[i];
+	const b = GetMediaID(i);
+
+	if (a === b) continue;
+	console.log(a, b);
+}
 
 // console.log(memory.buffer)
 await Deno.writeFile('dump.bin', new Uint8Array(memory.buffer));
@@ -30,12 +38,11 @@ async function InsertScores() {
 	const view = new DataView(buffer.buffer);
 
 	console.log(`Reading from ${filePath}...`);
-	const userSet = new Set<number>();
-	const userIDs: number[] = [];
+	const collection: number[] = [];
 	let count = 0;
 
 	let lastDraw = Date.now();
-	let nextDraw = 10_000;
+	let nextDraw = 0;
 	while (true) {
 		// Read 12 bytes from the file into our buffer
 		// .read() returns the number of bytes read or null if EOF
@@ -56,15 +63,16 @@ async function InsertScores() {
 
 			// const p = userIDs.length;
 			Insert_Score(mediaID, userID, score);
-			InsertionSort(userID, userIDs);
+			InsertionSort(mediaID, collection);
+			count++;
+
 			// userSet.add(userID);
 			// if (userIDs.length != userSet.size) console.log(userIDs.length, userSet.size);
 
-			const userCount = userIDs.length;
-			if (userCount > nextDraw) {
+			if (collection.length > nextDraw) {
 				const now = Date.now();
-				nextDraw += 10_000;
-				console.log(userCount, now - lastDraw);
+				nextDraw += 500;
+				console.log(collection.length, now - lastDraw);
 				lastDraw = now;
 			}
 
@@ -76,18 +84,14 @@ async function InsertScores() {
 			// 	score: Number(score.toFixed(4)), // Formatting for cleaner output
 			// });
 
-			count++;
-		}
 
+		}
 	}
 
 	console.log("--------------------------");
 	console.log(`Finished. Processed ${count} total scores.`);
-	console.log(userIDs.length);
 
-	for (let i=1; i<userIDs.length; i++) {
-		if (userIDs[i-1] >= userIDs[i]) console.log(userIDs[i-1], userIDs[i]);
-	}
+	return collection;
 }
 
 function InsertionSort(id: number, userIDs: number[]) {

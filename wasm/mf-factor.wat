@@ -60,7 +60,7 @@
 	(data (i32.const  8) "\00\00\00\00") ;; mediaScoreHead
 	(data (i32.const 12) "\00\00\00\00") ;; userIndexHead
 	(data (i32.const 16) "\00\00\00\00") ;; userScoreHead
-	(data (i32.const 20) "\00\00\00\00") ;; heaphead
+	(data (i32.const 20) "\00\00\00\00") ;; heapTail
 
 	(global $ptr/embeddingSize         i32  (i32.const  0))
 	(global $ptr/mediaIndexHeadAddress i32  (i32.const  4))
@@ -68,20 +68,50 @@
 	(global $ptr/userIndexHeadAddress  i32  (i32.const 12))
 	(global $ptr/userScoreHeadAddresss i32  (i32.const 16))
 	(global $ptr/heapTailAddress       i32  (i32.const 20))
-	(global $memroy/heapHead           i32  (i32.const 24))
+	(global $memory/heapHead           i32  (i32.const 24))
 	(global $memory/reserved      (mut i32) (i32.const  0))
+
+
+
+	(func $size/embedding
+		(result i32)
+		(i32.load align=4 (global.get $ptr/embeddingSize))
+	)
+	(func $size/media/score
+		(result i32)
+		(return (i32.const 8))
+	)
+	(func $size/media/index
+		(result i32)
+		(return (i32.add
+			(i32.mul (i32.const 4) (i32.const 3))
+			(i32.mul
+				(call $size/embedding)
+				(i32.const 3)
+			)
+		))
+	)
+	(func $size/user/score
+		(result i32)
+		(return (i32.const 8))
+	)
+	(func $size/user/index
+		(result i32)
+		(return (i32.add
+			(i32.mul (i32.const 4) (i32.const 3))
+			(call $size/embedding)
+		))
+	)
+
+
 
 	(export "Set_EmbeddingSize" (func $embeddingSize/set))
 	(func $embeddingSize/set
 		(param $embeddingSize i32)
 		(i32.store align=4 (global.get $ptr/embeddingSize) (local.get $embeddingSize))
 
-		(i32.store align=4 (global.get $ptr/heapTailAddress)       (global.get $memroy/heapHead) )
-		(i32.store align=4 (global.get $ptr/mediaScoreHeadAddress) (global.get $memroy/heapHead) )
-	)
-	(func $embeddingSize/get
-		(result i32)
-		(i32.load align=4 (global.get $ptr/embeddingSize))
+		(i32.store align=4 (global.get $ptr/heapTailAddress)       (global.get $memory/heapHead) )
+		(i32.store align=4 (global.get $ptr/mediaScoreHeadAddress) (global.get $memory/heapHead) )
 	)
 
 	(export "Insert_Score" (func $insert/mediaScore))
@@ -101,9 +131,41 @@
 		(f32.store offset=8 align=4 (local.get $ptr) (local.get $score  ))
 	)
 
+	(export "GetMediaID" (func $get/mediaID))
+	(func $get/mediaID
+		(param $index i32)
+		(result i32)
+		(local $ptr i32)
+
+		(return (i32.load (i32.add
+			(i32.add
+				(i32.const 8)
+				(i32.load (global.get $ptr/mediaIndexHeadAddress))
+			)
+			(i32.mul (local.get $index) (call $size/media/index))
+		)))
+
+		(local.set $ptr (i32.add
+			(global.get $ptr/mediaIndexHeadAddress)
+			(i32.add
+				(i32.const 4)
+				(i32.mul
+					(local.get $index)
+					(call $size/media/index)
+				)
+			)
+		))
+
+		(return (local.get $ptr))
+	)
+
 	(export "Index" (func $run/index))
 	(func $run/index
+		(local $scrub i32)
 		(call $index/media)
+		;; (call $index/user)
+		;;
+		(i32.store (call $memory/allocate (i32.const 4)) (i32.const -1))
 	)
 
 
@@ -111,7 +173,7 @@
 		(local $cursor/read      i32)
 		(local $cursor/write     i32)
 		(local $index/head       i32)
-		(local $recordSize/index i32)
+		(local $size/index i32)
 
 		(local $media/ptr    i32)
 		(local $media/id     i32)
@@ -123,28 +185,25 @@
 		(local $medias       i32)
 
 		;; set the score head
-		(local.set $index/head (call $memory/allocate (i32.const 4)))
+		(local.set $index/head (call $memory/allocate (i32.const 8)))
 		(i32.store align=4 (global.get $ptr/mediaIndexHeadAddress) (local.get $index/head) )
+
+		;; pre-compute index record size
+		(local.set $size/index (call $size/media/index))
 
 		(local.set $cursor/write (i32.load align=4 (global.get $ptr/mediaScoreHeadAddress)))
 		(local.set $cursor/read  (local.get $cursor/write))
 
-		;; pre-compute index record size
-		(local.set $recordSize/index (i32.add
-			(i32.mul (i32.const 4) (i32.const 3))
-			(i32.mul
-				(call $embeddingSize/get)
-				(i32.const 3)
-			)
-		))
-
 		;; pre-init first media
-		(local.set $media/ptr    (call $memory/allocate (local.get $recordSize/index)))
+		(local.set $media/ptr    (call $memory/allocate (local.get $size/index)))
 		(local.set $media/id     (i32.load (local.get $cursor/read)))
-		(local.set $media/scores (i32.const 0))
+		(local.set $media/scores (i32.const 1))
 		(local.set $medias       (i32.const 1))
 
-		;; for (; cusor/read < index/head; cusor/read += $recordSize/index)
+		(i32.store offset=0 align=4 (local.get $media/ptr) (local.get $media/id))
+		(i32.store offset=4 align=4 (local.get $media/ptr) (local.get $cursor/write))
+
+		;; for (; cusor/read < index/head; cusor/read += $size/index)
 		(block $while_break (loop $while_loop
 			(br_if $while_break (i32.ge_u (local.get $cursor/read) (local.get $index/head)))
 
@@ -153,42 +212,73 @@
 			(local.set $curr/userID  (i32.load offset=4 align=4 (local.get $cursor/read)))
 			(local.set $curr/score   (i32.load offset=8 align=4 (local.get $cursor/read)))
 
+			;; DEBUG: clear
+			(i32.store offset=0 align=4 (local.get $cursor/read) (i32.const 0))
+			(i32.store offset=4 align=4 (local.get $cursor/read) (i32.const 0))
+			(i32.store offset=8 align=4 (local.get $cursor/read) (i32.const 0))
+
 			;; write to proper format
 			(i32.store offset=0 align=4 (local.get $cursor/write) (local.get $curr/userID))
 			(i32.store offset=4 align=4 (local.get $cursor/write) (local.get $curr/score))
 
+			(if (i32.ne (local.get $media/id) (local.get $curr/mediaID)) (then
+				;; write completed score count to previous media
+				(i32.store offset=8 align=4 (local.get $media/ptr) (local.get $media/scores))
+
+				(local.set $media/ptr    (call $memory/allocate (local.get $size/index)))
+				(local.set $media/id     (local.get $curr/mediaID))
+				(local.set $media/scores (i32.const 1))
+				(local.set $medias       (i32.add (local.get $medias) (i32.const 1)))
+
+				;; fill in ID field
+				(i32.store offset=0 align=4 (local.get $media/ptr) (local.get $media/id))
+				(i32.store offset=4 align=4 (local.get $media/ptr) (local.get $cursor/write))
+			))
+
 			;; progress cursors
 			(local.set $cursor/read  (i32.add (local.get $cursor/read ) (i32.const 12)))
 			(local.set $cursor/write (i32.add (local.get $cursor/write) (i32.const 8)))
-
-			(if (i32.ne (local.get $curr/mediaID) (local.get $media/id)) (then
-				(i32.store offset=0 align=4 (local.get $media/ptr) (local.get $media/id))
-				(i32.store offset=8 align=4 (local.get $media/ptr) (local.get $media/scores))
-
-				(local.set $media/ptr    (call $memory/allocate (local.get $recordSize/index)))
-				(local.set $media/id     (local.get $curr/mediaID))
-				(local.set $media/scores (i32.const 0))
-				(local.set $medias       (i32.add (local.get $medias) (i32.const 1)))
-			))
 
 			(br $while_loop)
 		))
 
 
 		;; save final values
-		(i32.store offset=0 align=4 (local.get $media/ptr)  (local.get $media/id))
 		(i32.store offset=8 align=4 (local.get $media/ptr)  (local.get $media/scores))
 		(i32.store offset=0 align=4 (local.get $index/head) (local.get $medias))
 
 		;; shift media backwards to fill gap
 		(memory.copy
-			(local.get $index/head)   ;; dest
-			(local.get $cursor/write) ;; src
-			(i32.mul
-				(local.get $medias)
-				(local.get $recordSize/index)
+			(local.get $cursor/write) ;; dest
+			(local.get $index/head)   ;; src
+			(i32.sub
+				(i32.load (global.get $ptr/heapTailAddress))
+				(local.get $index/head)
 			)
 		)
+		(i32.store align=4 (global.get $ptr/mediaIndexHeadAddress) (local.get $cursor/write) )
+
+		;; clear the old data
+		(local.set $media/ptr (i32.add
+			(local.get $cursor/write)
+			(i32.sub
+				(i32.load (global.get $ptr/heapTailAddress))
+				(local.get $index/head)
+			)
+		))
+		(memory.fill
+			(local.get $media/ptr)
+			(i32.const 0) ;; value
+			(i32.sub (local.get $index/head) (local.get $cursor/write)) ;; size
+		)
+
+		(i32.store (global.get $ptr/heapTailAddress) (local.get $media/ptr))
+	)
+
+	(func $index/user
+		(local $head   i32)
+		(local $cursor i32)
+		(local $limit  i32)
 	)
 
 	(func $memory/insertSorted
@@ -295,9 +385,9 @@
 		)
 		;; blank out any existin data
 		(memory.fill
-			(local.get $addr)
-			(local.get $recordSize)
-			(i32.const 0)
+			(local.get $addr)       ;; dest
+			(i32.const 0)           ;; value(0)
+			(local.get $recordSize) ;; size
 		)
 
 		(i32.store align=4 (local.get $addr) (local.get $id))
