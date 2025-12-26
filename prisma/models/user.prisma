@@ -40,35 +40,16 @@ model UserMediaScore {
 
 	media   Media @relation(fields: [mediaID], references: [id], onUpdate: Cascade, onDelete: Cascade)
 	mediaID Int
-	@@id([userID, mediaID])
+	@@id([mediaID, userID]) // lookup by mediaID is more important
 
-	@@index([mediaID, userID, score]) // covering index
+	@@index([userID])
 
 	affinity Float? /// scale 0-1 (predicted score)
 	score    Float? /// scale 0-1
+	// takes up too much space
+	// @@index([mediaID, userID, score]) // covering index
 
 	updatedAt DateTime @default(now()) @updatedAt // helpful for making affinities stale
-}
-
-model UserAffinity {
-	a   User @relation("UserAffinityA",fields: [aID], references: [id], onUpdate: Cascade, onDelete: Cascade)
-	aID Int /// aID < bID
-	b   User @relation("UserAffinityB",fields: [bID], references: [id], onUpdate: Cascade, onDelete: Cascade)
-	bID Int /// aID < bID
-	@@id([aID, bID])
-
-	@@index([aID, score(sort: Desc)])
-	@@index([bID, score(sort: Desc)])
-	@@index([aID, bID, score]) // covering index
-
-	score     Float @default(0)
-	overlap   Int   @default(0)
-	updatedAt DateTime @default(now()) @updatedAt
-
-	stale Boolean @default(true)
-	@@index([stale, aID, bID]) // allow index only reads
-
-	@@ignore
 }
 
 

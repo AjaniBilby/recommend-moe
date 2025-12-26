@@ -1,6 +1,6 @@
 const RECORD_SIZE = 12;
 
-import { Insert_Score, Set_EmbeddingSize, Index, memory, GetMediaID } from './wasm/mf-factor.wasm';
+import { Insert_Score, Set_EmbeddingSize, IndexMedia, IndexUser, memory, GetMediaID } from './wasm/mf-factor.wasm';
 
 const filePath = './scores.bin';
 let file: Deno.FsFile | null = null;
@@ -8,23 +8,41 @@ let file: Deno.FsFile | null = null;
 Set_EmbeddingSize(128*3);
 
 const collection = await InsertScores();
+console.log(collection);
 
-console.time('index');
-await Index();
-console.timeEnd('index');
+console.time('Index Media');
+await IndexMedia();
+console.timeEnd('Index Media');
 
-for (let i=0; i<collection.length; i++) {
-	const a = collection[i];
-	const b = GetMediaID(i);
+// for (let i=0; i<collection.length; i++) {
+// 	const a = collection[i];
+// 	const b = GetMediaID(i);
 
-	if (a === b) continue;
-	console.log(a, b);
-}
+// 	if (a === b) continue;
+// 	console.log(a, b);
+// }
 
 // console.log(memory.buffer)
-await Deno.writeFile('dump.bin', new Uint8Array(memory.buffer));
+await Dump(memory);
+
+console.time('Index User');
+await IndexUser();
+console.timeEnd('Index User');
+await Dump(memory);
 
 
+async function Dump(memory: WebAssembly.Memory) {
+	const view = new Uint8Array(memory.buffer);
+	let i = view.length -1;
+	for (; i>=0; i--) {
+		if (view[i] !== 0) {
+			i++;
+			break;
+		}
+	}
+
+	await Deno.writeFile('dump.bin', view.slice(0, i+24));
+}
 
 async function InsertScores() {
 	// Open the file
@@ -38,12 +56,12 @@ async function InsertScores() {
 	const view = new DataView(buffer.buffer);
 
 	console.log(`Reading from ${filePath}...`);
-	const collection: number[] = [];
+	const collection: number[] = [1];
 	let count = 0;
 
 	let lastDraw = Date.now();
 	let nextDraw = 0;
-	while (true) {
+	outer: while (true) {
 		// Read 12 bytes from the file into our buffer
 		// .read() returns the number of bytes read or null if EOF
 		const bytesRead = await file.read(buffer);
@@ -61,9 +79,13 @@ async function InsertScores() {
 			const userID  = view.getUint32( i + 4, true);
 			const score   = view.getFloat32(i + 8, true);
 
+			if (collection.length >= 1 && !collection.includes(userID)) continue;
+
 			// const p = userIDs.length;
 			Insert_Score(mediaID, userID, score);
-			InsertionSort(mediaID, collection);
+
+			InsertionSort(userID, collection);
+			// if (collection.length > 2) break outer;
 			count++;
 
 			// userSet.add(userID);
