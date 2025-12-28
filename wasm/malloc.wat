@@ -11,8 +11,13 @@
 	;; }
 	(global $TAG_SIZE i32 (i32.const 16))
 
+	(export "malloc"  (func $memory/allocate ))
+	(export "free"    (func $memory/free     ))
+	(export "realloc" (func $memory/realloc  ))
+	(export "stripe"  (func $debug/stripe    ))
+	(export "blockSize"  (func $memory/blockSize    ))
+
 	;; just for debugging to see what regions are allocated
-	(export "stripe" (func $debug/stripe))
 	(func $debug/stripe
 		(param $ptr i32)
 		(param $val i32)
@@ -32,7 +37,7 @@
 		)
 	)
 
-	(func $bytesToBlockSize
+	(func $memory/blockSize
 		(param $bytes i32)
 		(result i32)
 
@@ -45,7 +50,6 @@
 		))
 	)
 
-	(export "malloc" (func $memory/allocate))
 	(func $memory/allocate
 		(param $bytes i32)
 		(result       i32)
@@ -55,7 +59,7 @@
 		(local $block_size i32)
 		(local $split_size i32)
 
-		(local.set $bytes      (call $bytesToBlockSize (local.get $bytes)))
+		(local.set $bytes      (call $memory/blockSize (local.get $bytes)))
 		(local.set $split_size (i32.add (local.get $bytes) (global.get $TAG_SIZE)))
 		(local.set $ptr (i32.const 0))
 
@@ -137,7 +141,6 @@
 		(unreachable)
 	)
 
-	(export "free" (func $memory/free))
 	(func $memory/free
 		(param $ptr        i32)
 		(local $block_size i32)
@@ -226,8 +229,110 @@
 		(v128.store (local.get $other) (v128.const i32x4 0 0 0 0))
 	)
 
+	(func $memory/realloc
+		(param $address  i32)
+		(param $bytes    i32)
+		(result i32)
+
+		(local $ptr             i32)
+		(local $block_size      i32)
+		(local $next/ptr        i32)
+		(local $next/block_size i32)
+
+		(local.set $ptr (i32.sub
+			(local.get  $address)
+			(global.get $TAG_SIZE)
+		))
+		(local.set $bytes (call $memory/blockSize (local.get $bytes)))
+
+		;; does it already fit?
+		(local.set $block_size (i32.load offset=0 (local.get $ptr)))
+		(if (i32.le_u (local.get $bytes) (local.get $block_size)) (then
+			(return (local.get $address))
+		))
+
+		(local.set $next/ptr        (i32.add (local.get $ptr) (local.get $block_size)))
+		(local.set $next/block_size (i32.load offset=0        (local.get $next/ptr)))
+
+		;; cannot merge into next
+		(if (i32.or
+			(i32.ne (i32.const 0) (i32.load8_u offset=15 (local.get $next/ptr)))      ;; used
+			(i32.lt_u
+				(i32.add (local.get $block_size) (local.get $next/block_size))          ;; not enough space
+				(local.get $bytes)
+			)
+		) (then
+			;; restore size back
+			(local.set $bytes (i32.sub (local.get $next/block_size) (local.get $block_size)))
+
+			;; create new block
+			(local.set $next/ptr (call $memory/allocate (local.get $bytes)))
+
+			;; move data
+			(memory.copy
+				(local.get $next/ptr) ;; dest
+				(i32.add              ;; src
+					(local.get  $ptr     )
+					(global.get $TAG_SIZE)
+				)
+				(local.get $bytes)
+			)
+
+			;; clear old block
+			(call $memory/free (local.get $address))
+
+			(return (local.get $next/ptr))
+		))
+
+		;; clear next header
+		(v128.store (local.get $next/ptr) (v128.const i32x4 0 0 0 0))
+
+		;; calculate remainder block size
+		(local.set $next/block_size (i32.sub
+			(i32.add (local.get $block_size) (local.get $next/block_size))
+			(local.get $bytes)
+		))
+
+		;; is the remaining space too small for a new header?
+		(if (i32.le_u
+			(local.get $next/block_size)
+			(i32.add (global.get $TAG_SIZE) (global.get $TAG_SIZE)) ;; header + body(sized TAG)
+		) (then
+			;; expand to consume the entire block
+			(local.set $bytes (i32.add
+				(local.get $bytes)
+				(local.get $next/block_size)
+			))
+
+			;; store new size
+			(i32.store offset=0 (local.get $ptr) (local.get $bytes))
+
+			;; update next block's prev block pointer
+			(i32.store  offset=8
+				(i32.add (local.get $ptr) (local.get $bytes))
+				(local.get $ptr)
+			)
+		) (else
+			;; store new size
+			(i32.store offset=0 (local.get $ptr) (local.get $bytes))
+
+			;; make new header
+			(local.set $next/ptr  (i32.add (local.get $ptr) (local.get $bytes) ))
+			(i32.store  offset=0  (local.get $next/ptr) (local.get $next/block_size))
+			(i32.store  offset=8  (local.get $next/ptr) (local.get $ptr))
+			(i32.store8 offset=15 (local.get $next/ptr) (i32.const 0))
+
+			;; update next next block's prev block pointer
+			(i32.store offset=8
+				(i32.add (local.get $next/ptr) (local.get $next/block_size))
+				(local.get $next/ptr)
+			)
+		))
+
+		(return (local.get $address))
+	)
+
 	;; grow the linear memory if necessary
-	(export "memory/reserve" (func $memory/reserve))
 	(func $memory/reserve
 		(param $bytes i32)
 		(local $pages/required i32)
