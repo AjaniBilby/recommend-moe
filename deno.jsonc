@@ -17,6 +17,7 @@
 		"build:server": "deno run -A npm:vite build --ssr app/entry.server.ts --outDir dist/server",
 
 		"build:wasm": "deno task 'build:wasm:*'",
+		"build:wasm:malloc":    "wat2wasm ./wasm/malloc.wat -o ./wasm/malloc.wasm --debug-names",
 		"build:wasm:mf-factor": "wat2wasm ./wasm/mf-factor.wat -o ./wasm/mf-factor.wasm --debug-names",
 
 		"compile": "deno compile -A production.ts --include build/* --include public/*",

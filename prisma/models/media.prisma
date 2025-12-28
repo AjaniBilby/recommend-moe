@@ -100,8 +100,6 @@ model MediaAffinity {
 	score     Float @default(0) // cosine similarly (based on user scores)
 	overlap   Int   @default(0)
 
-	updatedAt DateTime @default(now()) @updatedAt
-
-	stale Boolean @default(true)
+	stale Boolean? @default(true) // use nulls to prevent indexing
 	@@index([stale]) // allow index only reads
 }
