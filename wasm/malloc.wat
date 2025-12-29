@@ -1,7 +1,4 @@
-(module
-	(memory $0 1)
-	(export "memory" (memory $0))
-
+(module $malloc
 	;; MetaTag v128 {
 	;;   0:  size: u32 (number of bytes from start)
 	;;   4:   pad: u32 (space for 64bit encoding)
@@ -10,12 +7,15 @@
 	;;  15:  used:  i8
 	;; }
 	(global $TAG_SIZE i32 (i32.const 16))
+	(memory $0 1)
 
-	(export "malloc"  (func $memory/allocate ))
-	(export "free"    (func $memory/free     ))
-	(export "realloc" (func $memory/realloc  ))
-	(export "stripe"  (func $debug/stripe    ))
-	(export "blockSize"  (func $memory/blockSize    ))
+	(export "memory"    (memory $0))
+	(export "malloc"    (func $memory/allocate  ))
+	(export "free"      (func $memory/free      ))
+	(export "realloc"   (func $memory/realloc   ))
+	(export "capacity"  (func $memory/capacity  ))
+	(export "stripe"    (func $debug/stripe     ))
+	(export "blockSize" (func $memory/blockSize ))
 
 	;; just for debugging to see what regions are allocated
 	(func $debug/stripe
@@ -48,6 +48,16 @@
 			)
 			(global.get $TAG_SIZE)
 		))
+	)
+
+	(func $memory/capacity
+		(param $address  i32)
+		(result i32)
+
+		(return (i32.load offset=0 (i32.sub
+			(local.get  $address)
+			(global.get $TAG_SIZE)
+		)))
 	)
 
 	(func $memory/allocate

@@ -17,8 +17,10 @@
 		"build:server": "deno run -A npm:vite build --ssr app/entry.server.ts --outDir dist/server",
 
 		"build:wasm": "deno task 'build:wasm:*'",
-		"build:wasm:malloc":    "wat2wasm ./wasm/malloc.wat -o ./wasm/malloc.wasm --debug-names",
-		"build:wasm:mf-factor": "wat2wasm ./wasm/mf-factor.wat -o ./wasm/mf-factor.wasm --debug-names",
+		"build:wasm:malloc":    "wat2wasm --debug-names ./wasm/malloc.wat -o ./wasm/malloc.wasm",
+		"build:wasm:slice":     "wat2wasm --debug-names ./wasm/slice.wat -o ./wasm/slice.wasm",
+		"build:wasm:mf-factor:compile": "wat2wasm --debug-names ./wasm/mf-factor.wat -o ./wasm/mf-factor.wasm",
+		"build:wasm:mf-factor:link"   : "wasm-merge --debuginfo --rename-export-conflicts -all ./wasm/malloc.wasm malloc ./wasm/slice.wasm slice ./wasm/mf-factor.wasm mf-factor -o ./wasm/mf-factor.wasm",
 
 		"compile": "deno compile -A production.ts --include build/* --include public/*",
 
