@@ -54,10 +54,13 @@
 		(param $address  i32)
 		(result i32)
 
-		(return (i32.load offset=0 (i32.sub
-			(local.get  $address)
+		(return (i32.sub
+			(i32.load offset=0 (i32.sub
+				(local.get  $address)
+				(global.get $TAG_SIZE)
+			))
 			(global.get $TAG_SIZE)
-		)))
+		))
 	)
 
 	(func $memory/allocate

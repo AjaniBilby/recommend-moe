@@ -18,6 +18,7 @@
 	;; MetaTag v128 {
 	;;   0:     length: u32
 	;;   4: recordSize: u32
+	;;   8:        pad: u64
 	;; }
 	(global $HEADER_SIZE i32 (i32.const 16))
 
@@ -49,7 +50,10 @@
 		(result       i32)
 
 		(return (i32.add
-			(global.get $HEADER_SIZE)
+			(i32.add
+				(local.get $ptr)
+				(global.get $HEADER_SIZE)
+			)
 			(i32.mul
 				(i32.load offset=4 (local.get $ptr)) ;; recordSize
 				(local.get $index)
@@ -69,12 +73,16 @@
 		(local $capacity i32)
 
 		(local.set $capacity (call $memory/capacity (local.get $ptr)))
-		(if (i32.lt_u (local.get $capacity) (i32.const 1)) (then
+
+		(if (i32.lt_u (local.get $capacity) (global.get $HEADER_SIZE)) (then
 			(return (i32.const 0))
 		))
 
 		(return (i32.div_u
-			(local.get $capacity)
+			(i32.sub
+				(local.get $capacity)
+				(global.get $HEADER_SIZE)
+			)
 			(i32.load offset=4 (local.get $ptr)) ;; recordSize
 		))
 	)
@@ -84,7 +92,7 @@
 
 		(return (i32.sub
 			(call $slice/capacity (local.get $ptr))
-			(call $slice/length (local.get $ptr))
+			(call $slice/length   (local.get $ptr))
 		))
 	)
 	(func $slice/reserve
@@ -94,9 +102,12 @@
 
 		(return (call $memory/realloc
 			(local.get $ptr)
-			(i32.mul
-				(local.get $capacity)
-				(i32.load offset=4 (local.get $ptr)) ;; recordSize
+			(i32.add
+				(global.get $HEADER_SIZE)
+				(i32.mul
+					(i32.load offset=4 (local.get $ptr)) ;; recordSize
+					(local.get $capacity)
+				)
 			)
 		))
 	)
@@ -130,12 +141,13 @@
 
 		;; get ptr of new element
 		(local.set $length (i32.load offset=0 (local.get $ptr)))
-		(local.set $ptr    (call $slice/get   (local.get $ptr) (local.get $length)))
 
 		;; increment length
 		(i32.store offset=0 (local.get $ptr) (i32.add (local.get $length) (i32.const 1)))
 
-		(return (local.get $ptr))
+		(return
+			(call $slice/get (local.get $ptr) (local.get $length))
+		)
 	)
 
 	(func $slice/insert

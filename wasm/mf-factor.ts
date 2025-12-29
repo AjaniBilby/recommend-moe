@@ -1,9 +1,10 @@
 const RECORD_SIZE = 12;
-import { MakeContext, InsertScore, memory } from './mf-factor.wasm';
+import { MakeContext, InsertScore, memory, "slice/capacity" as capacity } from './mf-factor.wasm';
 import { DumpMemory } from "./dump.ts";
 
 const ctx = MakeContext(386);
-
+await DumpMemory(memory, './dump.bin', false);
+console.log(capacity(64))
 await IngestScores(ctx);
 
 async function IngestScores(ctx: number) {
@@ -40,23 +41,25 @@ async function IngestScores(ctx: number) {
 			const userID  = view.getUint32( i + 4, true);
 			const score   = view.getFloat32(i + 8, true);
 
-			if (collection.length >= 1 && !collection.includes(userID)) continue;
-
 			// const p = userIDs.length;
+			// console.log(count, mediaID, userID, score);
+			console.log(mediaID, userID, score);
 			InsertScore(ctx, mediaID, userID, score);
+			await DumpMemory(memory, './dump.bin', false);
+			console.log(capacity(64))
+			// return;
 
 			InsertionSort(userID, collection);
-			await DumpMemory(memory, './dump.bin');
 			// if (collection.length > 2) break outer;
 			count++;
 
 			// userSet.add(userID);
 			// if (userIDs.length != userSet.size) console.log(userIDs.length, userSet.size);
 
-			if (collection.length > nextDraw) {
+			if (count > nextDraw) {
 				const now = Date.now();
-				nextDraw += 500;
-				console.log(collection.length, now - lastDraw);
+				nextDraw += 5000;
+				console.log(count, now - lastDraw);
 				lastDraw = now;
 			}
 

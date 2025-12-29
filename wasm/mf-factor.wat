@@ -15,8 +15,10 @@
 	(import "slice" "push"      (func $slice/push      (param i32        ) (result i32)))
 	(import "slice" "insert"    (func $slice/insert    (param i32 i32    ) (result i32)))
 
-	(export "MakeContext" (func $make))
-	(export "InsertScore" (func $insert))
+	(export "MakeContext"    (func $make))
+	(export "InsertScore"    (func $insert))
+	(export "malloc"         (func $memory/malloc))
+	(export "slice/capacity" (func $slice/available))
 
 	;; Context {
 	;;   0: embeddingSize: Collection(u32)
@@ -31,14 +33,13 @@
 		(result               i32)
 		(local $ptr           i32)
 
-		(local.set $ptr (call $memory/malloc (i32.const 0)))
+		(local.set $ptr (call $memory/malloc (i32.const 20)))
+
 		(i32.store offset=0 (local.get $ptr) (local.get $embeddingSize))
 
-		;; use the mediaScores slice to put the raw (mediaID[u32], userID[u32], score[f32]) tuples in
 		(i32.store offset=8 (local.get $ptr)
-			(call $slice/make (i32.const 12) (i32.const 1000))
+			(call $slice/make (i32.const 16) (i32.const 1))
 		)
-
 		(return (local.get $ptr))
 	)
 
@@ -47,7 +48,8 @@
 		(param $mediaID i32)
 		(param $userID  i32)
 		(param $score   f32)
-		(local $ptr   i32)
+
+		(local $ptr     i32)
 
 		(local.set $ptr (i32.load offset=8 (local.get $ctx)))
 
@@ -59,7 +61,7 @@
 
 		(local.set $ptr (call $slice/push (local.get $ptr)))
 		(i32.store offset=0 (local.get $ptr) (local.get $mediaID))
-		(i32.store offset=4 (local.get $ptr) (local.get $userID))
-		(f32.store offset=8 (local.get $ptr) (local.get $score))
+		(i32.store offset=4 (local.get $ptr) (local.get $userID ))
+		(f32.store offset=8 (local.get $ptr) (local.get $score  ))
 	)
 )
